@@ -1,15 +1,30 @@
 import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# from Judge import judge
+import Judge
 
-class judge:
-	def __init__(self, name = 'no name', paradigm = '''no paradigm''', paradigm_updated='no paradigm', tournaments = list() ):
-		self.name = name
-		self.paradigm = paradigm
-		self.paradigm_updated = paradigm_updated
-		self.tournaments = tournaments
+
+
  
+#used so that you can parse "full judging record" by row before going by line to populate a judge object with round objects
+class Table:
+	def __init__(self, division = list(), date = list(), aff=list(), neg = list(), vote = list(), result = list() ):
+		self.division = division
+		self.date = date
+		self.aff = aff
+		self.neg = neg
+		self.vote = vote
+		self.result = result
+	
+	def make_round(self, counter):
+		return Judge.Round(self.division[counter], self.date[counter], self.aff[counter], self.neg[counter], self.vote[counter], self.result[counter])
+
+	def to_round_list(self):
+		rounds = list()
+		for i in range(len(self.division)):
+			rounds.append(self.make_round(i))
+		return rounds
+
 
 
 WEBSITE_ADDRESS = 'https://www.tabroom.com/index/paradigm.mhtml?judge_person_id=105729'
@@ -26,7 +41,7 @@ driver = webdriver.Chrome()
 try:
 	driver.get(WEBSITE_ADDRESS)
 
-	new_judge = judge()
+	new_judge = Judge.Judge()
 
 	# get name, paradigm, and date of update
 	parts_paradigm = driver.find_elements(By.CLASS_NAME, 'ltborderbottom')
@@ -60,16 +75,49 @@ try:
 		# remove try then code runs reliably
 		try:
 			for row in table.find_elements(By.XPATH, ".//tr"):
+				# identify tournaments judge has participated in
 				for td in row.find_elements(By.XPATH, ".//td[@class='nospace'][1]"):
 					tournament = td.text
 					if len(new_judge.tournaments) == 0 or tournament != new_judge.tournaments[-1]:
 						new_judge.tournaments.append(tournament)
-						print(tournament)
+						# print(tournament)
+				table = Table()
+				# Identify division
+				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap centeralign'][1]"):
+					table.division.append(td.text)
+				# Identify date
+				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap'][1]"):
+					table.date.append(td.text)
+					# print(td.text)
+				# Identify aff url
+				for td in row.find_elements(By.XPATH, ".//td[@class='nospace'][3]/a"):
+					table.aff.append(td.get_attribute('href'))
+					# print(td.get_attribute('href'))
+					# print(td.text)
+					#You might also need a wait condition for presence of all elements located by css selector.
+					#elems = WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".sc-eYdvao.kvdWiq [href]")))
+				# Identify neg url
+				for td in row.find_elements(By.XPATH, ".//td[@class='nospace'][4]/a"):
+					table.neg.append(td.get_attribute('href'))
+					# print(td.get_attribute('href'))
+					# print(td.text)
+				# identify vote
+				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap'][2]"):
+					table.vote.append(td.text)
+					# print(td.text)
+				# identify result
+				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap'][3]"):
+					table.result.append(td.text)
+					# print(td.text)
+
 		except Exception as e: 
 			print(e)
 			print("issue iterating through judging record table")
 	except:
 		print("Issue finding table")
+
+	new_judge.rounds = table.to_round_list()
+	print(new_judge)
 	driver.quit()
 except Exception as e: 
 	print(e)
