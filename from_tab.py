@@ -25,6 +25,36 @@ class Table:
 			rounds.append(self.make_round(i))
 		return rounds
 
+def getCompetitors(WEBSITE_ADDRESS):
+	# Using Chrome to access web for debuging
+	driver = webdriver.Chrome()
+	print("finding competitors names")
+	# USe PhantomJS for speed (not working yet)
+	# driver = webdriver.PhantomJS(executable_path=phantomjs_path)
+	# driver = webdriver.phantomjs()
+	# driver.set_window_size(1120, 550)
+
+	# Open the website
+	try:
+		driver.get(WEBSITE_ADDRESS)
+
+		names = list()
+
+		# get name, paradigm, and date of update
+		# //*[@id="content"]/div[3]/div[1]/span[1]/h4
+
+		raw_names = driver.find_element(By.XPATH, './/*[@id="content"]/div[3]/div[1]/span[1]/h4').text
+		print(raw_names)
+		split_raw_names = raw_names.split(" & ")
+		for i in split_raw_names:
+			names.append(i.split()[0])
+		driver.quit()
+		return names
+
+	except Exception as e: 
+		print(e)
+		driver.quit()
+		return None
 
 
 def get_judge (WEBSITE_ADDRESS):
@@ -117,6 +147,7 @@ def get_judge (WEBSITE_ADDRESS):
 
 		new_judge.rounds = table.to_round_list()
 		driver.quit()
+		print("finished finding judge info")
 		return new_judge
 
 	except Exception as e: 

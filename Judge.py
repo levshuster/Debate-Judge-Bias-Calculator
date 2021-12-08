@@ -2,6 +2,7 @@
 from fractions import Fraction
 import datetime
 import pickle
+import Gender
 
 USE_PERCENTAGE = False
 
@@ -26,6 +27,11 @@ class Round:
 		self.neg = neg
 		self.vote = vote
 		self.result = result
+		#MM vs MM and FF vs FF and F? vs MM... are thrown out
+		#if FF win over FM then +.5	if MM win over FM then -.5
+		#if FF win over MM then +1	if MM win over FF then -1
+		self.vote_for_more_woman = Gender.vote_for_more_woman(aff, neg, vote)
+		print(self.vote_for_more_woman)
 	def __str__(self):
 		return self.division + '\t' + str(self.date) + '\t' + self.vote + '\t' + self.result
 	
@@ -67,9 +73,10 @@ class Judge:
 		return int(aff_counter/len(self.rounds)*100)
 
 	def __str__(self):
+		print("starting to print")
 		result = self.name + '\t' + "paradigm last updated " + self.paradigm_updated
 		result += '\nAFFERMATIVE BIAS?   '+fraction_to_statment(self.aff_ballot_percentage(), 'affirmative votes', 'negitive votes')
-		result += '\nTENDENCY TO AGREE WITH MAJORITY   '+fraction_to_statment(self.align_with_panal_percentage(), 'agree with majority of panal', 'desenting vote in a judging panel')
+		result += '\n\nTENDENCY TO AGREE WITH MAJORITY   '+fraction_to_statment(self.align_with_panal_percentage(), self.name+'ballots who agree with majority of the panal', 'ballots who disagree with the majority of the judging panel')
 		if self.SHOULD_PRINT_LONG:
 			result += '\n\n' +  "--PARADIGM--\n"+self.paradigm +'\n\n'+"--PARTICIPATED AS A JUDGE IN:--\n"
 			for i in self.tournaments:
