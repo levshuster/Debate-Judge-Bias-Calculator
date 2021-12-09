@@ -68,7 +68,13 @@ class Judge:
 						woman_win_counter += i.vote_for_more_woman
 					elif i.vote_for_more_woman <0:
 						man_win_counter -= i.vote_for_more_woman
-		return int(woman_win_counter/(woman_win_counter+man_win_counter)*100)
+		rslts = {'woman_win_percentage':int(woman_win_counter/(woman_win_counter+man_win_counter)*100), 'number_of_ballots_diffrence':abs(woman_win_counter-man_win_counter)}
+		if (man_win_counter>woman_win_counter):
+			rslts['male_bias']=True
+		else:			
+			rslts['male_bias']=False
+
+		return rslts
 
 	def aff_ballot_percentage(self, start_date=None, end_date=None):
 		aff_counter = 0
@@ -85,7 +91,7 @@ class Judge:
 		result = self.name + '\n' 
 		result += '\nAFFERMATIVE BIAS?\n'+fraction_to_statment(self.aff_ballot_percentage(), 'affirmative votes', 'negitive votes')
 		result += '\n\nTENDENCY TO AGREE WITH MAJORITY\n'+fraction_to_statment(self.align_with_panal_percentage(), 'ballots who agree with majority of the panal', 'ballots who disagree with the majority of the judging panel')
-		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(self.winning_gender_bias(), 'Ballots for woman', 'ballots for men')
+		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(self.winning_gender_bias()['woman_win_percentage'], 'Ballots for woman', 'ballots for men')+'\nthat bias rating is the result of an aditional ' + str(int(self.winning_gender_bias()['number_of_ballots_diffrence']))+" ballots"
 
 		if self.SHOULD_PRINT_LONG:
 			result += '\n\n' + "paradigm last updated " + self.paradigm_updated +  "\n\n\nPARADIGM"+self.paradigm +'\n\n'+"PARTICIPATED AS A JUDGE IN:\n"
