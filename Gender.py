@@ -1,4 +1,6 @@
 import requests, json
+
+from requests import api
 import from_tab
 
 # The MIT License (MIT)
@@ -33,6 +35,8 @@ def getGenders(names):
 
 
 SERTAINTY_THREASHOLD = 0.7
+NUMBER_OF_API_CALLS_PER_JUDGE = 100
+api_calls_so_far = 0
 #MM vs MM and FF vs FF and F? vs MM... are thrown out (0)
 #if FF win over FM then +.5	if MM win over FM then -.5
 #if FF win over MM then +1	if MM win over FF then -1
@@ -41,7 +45,9 @@ def vote_for_more_woman(aff_url, neg_url, vote):
 	neg_names = from_tab.getCompetitors(neg_url)
 	print(aff_names)
 	print(neg_names)
-	if aff_names and neg_names:
+	global api_calls_so_far
+	if api_calls_so_far < NUMBER_OF_API_CALLS_PER_JUDGE and aff_names and neg_names:
+		api_calls_so_far+=2
 		return getGenderBalance(aff_names+neg_names, vote)
 	else:
 		return 0
@@ -54,17 +60,17 @@ def getGenderBalance(names=list(), vote=None):
 	if vote == "Neg":
 		count_step=-1
 		count_start = number_of_debators
-		count_end = 1
+		count_end = 0
 	elif vote == 'Aff':
 		count_step=1
 		count_start = -1
 		count_end = number_of_debators-1
 	else:
 		return 0
-
+	print(genders_of_names)
 	# removes names that are not clearly femine or masculine
 	for i in genders_of_names:
-		if i[1]<SERTAINTY_THREASHOLD:
+		if float(i[1])<SERTAINTY_THREASHOLD:
 			return 0
 
 	# handles Lincon Douglas Debate, Big Questions, etc.
@@ -83,11 +89,12 @@ def getGenderBalance(names=list(), vote=None):
 				gender_list.append(-1)
 			else:
 				gender_list.append(1)
+		print(gender_list)
 		print((gender_list[0]+gender_list[1]-gender_list[2]-gender_list[3])/4)
 		return (gender_list[0]+gender_list[1]-gender_list[2]-gender_list[3])/4 #this won't make any sence until you write out all the possibilites
 	else: #debate forms with any other number of debaters get ignored
 		return 0
-# print(getGenderBalance(["lev", "Todd", "Kendra","lev"], 'Aff'))
+# print(getGenderBalance(['Aimen', 'Harini', 'Felix', 'Ethan'], 'Neg'))
 # [('male', 0.95, 1007), ('female', 0.94, 2752), ('female', 0.96, 1251), ('male', 0.99, 6598)
 
 

@@ -31,9 +31,8 @@ class Round:
 		#if FF win over FM then +.5	if MM win over FM then -.5
 		#if FF win over MM then +1	if MM win over FF then -1
 		self.vote_for_more_woman = Gender.vote_for_more_woman(aff, neg, vote)
-		print(self.vote_for_more_woman)
 	def __str__(self):
-		return self.division + '\t' + str(self.date) + '\t' + self.vote + '\t' + self.result
+		return str(self.division) + '\t' + str(self.date) + '\t' + str(self.vote) + '\t' + str(self.result) + '\t' + str(self.vote_for_more_woman)
 	
 
 
@@ -58,8 +57,18 @@ class Judge:
 						if i.result.split()[0] == i.vote:
 							decision_aligns_with_majority += 1
 		return decision_aligns_with_majority/panel_participation*100
-
-
+	def winning_gender_bias(self, start_date=None, end_date=None):
+		woman_win_counter = 0
+		man_win_counter = 0
+		for i in self.rounds:
+			if start_date == None or start_date <= i.date:
+				if end_date == None or end_date >= i.date:
+					print(i)
+					if i.vote_for_more_woman >0:
+						woman_win_counter += i.vote_for_more_woman
+					elif i.vote_for_more_woman <0:
+						man_win_counter -= i.vote_for_more_woman
+		return int(woman_win_counter/(woman_win_counter+man_win_counter)*100)
 
 	def aff_ballot_percentage(self, start_date=None, end_date=None):
 		aff_counter = 0
@@ -73,17 +82,18 @@ class Judge:
 		return int(aff_counter/len(self.rounds)*100)
 
 	def __str__(self):
-		print("starting to print")
-		result = self.name + '\t' + "paradigm last updated " + self.paradigm_updated
-		result += '\nAFFERMATIVE BIAS?   '+fraction_to_statment(self.aff_ballot_percentage(), 'affirmative votes', 'negitive votes')
-		result += '\n\nTENDENCY TO AGREE WITH MAJORITY   '+fraction_to_statment(self.align_with_panal_percentage(), self.name+'ballots who agree with majority of the panal', 'ballots who disagree with the majority of the judging panel')
+		result = self.name + '\n' 
+		result += '\nAFFERMATIVE BIAS?\n'+fraction_to_statment(self.aff_ballot_percentage(), 'affirmative votes', 'negitive votes')
+		result += '\n\nTENDENCY TO AGREE WITH MAJORITY\n'+fraction_to_statment(self.align_with_panal_percentage(), 'ballots who agree with majority of the panal', 'ballots who disagree with the majority of the judging panel')
+		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(self.winning_gender_bias(), 'Ballots for woman', 'ballots for men')
+
 		if self.SHOULD_PRINT_LONG:
-			result += '\n\n' +  "--PARADIGM--\n"+self.paradigm +'\n\n'+"--PARTICIPATED AS A JUDGE IN:--\n"
+			result += '\n\n' + "paradigm last updated " + self.paradigm_updated +  "\n\n\nPARADIGM"+self.paradigm +'\n\n'+"PARTICIPATED AS A JUDGE IN:\n"
 			for i in self.tournaments:
 				result += i + '\n'
 			
-			for i in self.rounds:
-				result += str(i)+'\n'
+			# for i in self.rounds:
+			# 	result += str(i)+'\n'
 		return result
 
 #reference from https://www.techcoil.com/blog/how-to-save-and-load-objects-to-and-from-file-in-python-via-facilities-from-the-pickle-module/
