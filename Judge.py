@@ -4,7 +4,7 @@ import datetime
 import pickle
 import Gender
 
-USE_PERCENTAGE = False
+USE_PERCENTAGE = True
 
 #takes in a intager representing a percentage and resturns a explanation of the fraction
 def fraction_to_statment (percentage, left_side = 'thing a', right_side = 'thing b'):
@@ -63,11 +63,15 @@ class Judge:
 		for i in self.rounds:
 			if start_date == None or start_date <= i.date:
 				if end_date == None or end_date >= i.date:
-					print(i)
+					if self.SHOULD_PRINT_LONG:print(i)
 					if i.vote_for_more_woman >0:
 						woman_win_counter += i.vote_for_more_woman
 					elif i.vote_for_more_woman <0:
 						man_win_counter -= i.vote_for_more_woman
+		if woman_win_counter == 0 and man_win_counter == 0:
+			print("\n\n**For the upcoming Judge, Woman win persentage is likely in error because incomplete data was scraped, make sure you have not surpased you 1000 api call limit**")
+			woman_win_counter = 1
+			man_win_counter = 1
 		rslts = {'woman_win_percentage':int(woman_win_counter/(woman_win_counter+man_win_counter)*100), 'number_of_ballots_diffrence':abs(woman_win_counter-man_win_counter)}
 		if (man_win_counter>woman_win_counter):
 			rslts['male_bias']=True
@@ -88,10 +92,12 @@ class Judge:
 		return int(aff_counter/len(self.rounds)*100)
 
 	def __str__(self):
-		result = self.name + '\n' 
+		result = '\n\n\n'+self.name
 		result += '\nAFFERMATIVE BIAS?\n'+fraction_to_statment(self.aff_ballot_percentage(), 'affirmative votes', 'negitive votes')
 		result += '\n\nTENDENCY TO AGREE WITH MAJORITY\n'+fraction_to_statment(self.align_with_panal_percentage(), 'ballots who agree with majority of the panal', 'ballots who disagree with the majority of the judging panel')
-		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(self.winning_gender_bias()['woman_win_percentage'], 'Ballots for woman', 'ballots for men')+'\nthat bias rating is the result of an aditional ' + str(int(self.winning_gender_bias()['number_of_ballots_diffrence']))+" ballots"
+		
+		gender_bias_results = self.winning_gender_bias()
+		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(gender_bias_results['woman_win_percentage'], 'Ballots for woman', 'ballots for men')+'\nthat bias rating is the result of an aditional ' + str(int(gender_bias_results['number_of_ballots_diffrence']))+" ballots"
 
 		if self.SHOULD_PRINT_LONG:
 			result += '\n\n' + "paradigm last updated " + self.paradigm_updated +  "\n\n\nPARADIGM"+self.paradigm +'\n\n'+"PARTICIPATED AS A JUDGE IN:\n"

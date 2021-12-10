@@ -26,10 +26,16 @@ def getGenders(names):
 	
 	retrn = []
 	for result in results:
-		if result["gender"] is not None:
+		print(result)
+		if result == 'error':
+			print('max api calls reached')
+			retrn.append((u'None',u'0.0',0.0))
+			
+		elif result["gender"] is not None:
 			retrn.append((result["gender"], result["probability"], result["count"]))
 		else:
 			retrn.append((u'None',u'0.0',0.0))
+		
 	return retrn
 
 

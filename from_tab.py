@@ -28,14 +28,17 @@ class Table:
 		rounds = list()
 		with concurrent.futures.ThreadPoolExecutor() as executor:
 			for i in range(len(self.division)):
+				print("starting round", i ,'out of', len(self.division))
 				try:
 					rounds_proceses.append(executor.submit(self.make_round, i))
 				except:
 					print("a team name thread couldn't be started")
 		for i in rounds_proceses:
+			print("finishing round", rounds_proceses.index(i) ,'out of', len(rounds_proceses))
 			try:
 				rounds.append(i.result())
-			except:
+			except Exception as e: 
+				print(e)
 				print("a team name result couldn't be found")
 		return rounds
 
