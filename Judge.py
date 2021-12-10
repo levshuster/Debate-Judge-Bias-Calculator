@@ -85,7 +85,7 @@ class Judge:
 		for i in self.rounds:
 			if start_date == None or start_date <= i.date:
 				if end_date == None or end_date >= i.date:
-					if str(i.vote) == 'Aff':
+					if str(i.vote) == 'Aff' or str(i.vote) == 'Pro':
 						aff_counter=1 + aff_counter
 					# elif str(i.vote) != 'Neg':
 						# print("Each round must end with a Aff or Neg ballot, this ballot got a "+i.vote+" ballot")

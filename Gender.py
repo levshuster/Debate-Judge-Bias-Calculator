@@ -49,8 +49,8 @@ api_calls_so_far = 0
 def vote_for_more_woman(aff_url, neg_url, vote):
 	aff_names = from_tab.getCompetitors(aff_url)
 	neg_names = from_tab.getCompetitors(neg_url)
-	print(aff_names)
-	print(neg_names)
+	# print(aff_names)
+	# print(neg_names)
 	global api_calls_so_far
 	if api_calls_so_far < NUMBER_OF_API_CALLS_PER_JUDGE and aff_names and neg_names:
 		api_calls_so_far+=2
@@ -63,11 +63,11 @@ def getGenderBalance(names=list(), vote=None):
 	number_of_debators = len(genders_of_names)
 
 	#put winning team first and remove rounds that don't end in normal ballot
-	if vote == "Neg":
+	if vote == "Neg" or vote == 'Con':
 		count_step=-1
 		count_start = number_of_debators
 		count_end = 0
-	elif vote == 'Aff':
+	elif vote == 'Aff' or vote == 'Pro':
 		count_step=1
 		count_start = -1
 		count_end = number_of_debators-1
