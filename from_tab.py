@@ -4,6 +4,121 @@ from selenium.webdriver.common.by import By
 import Judge
 import concurrent.futures
 import urllib.request
+
+#Handles Test files
+def process_section(header, lines):
+	print('started ', header)
+	if header == 'Name':
+		big_line = ''
+		for line in lines:
+			big_line += line +' '
+		return {'name':big_line}	
+	if header == 'Paradigm':
+		big_line = ''
+		for line in lines:
+			big_line += line +'\n'
+		return {'paradigm':big_line}
+	if header == 'Date of Paradigm Update':
+		big_line = ''
+		for line in lines:
+			big_line += line +' '
+		return {'date':big_line}
+	if header == 'Rounds':
+		print("rounds found")
+		print(lines, len(lines))
+		table = Table()
+		for round in lines:
+			if len(round) == 10:
+				print(round)
+				round_elements = round.split(',')
+				table.division.append(round_elements[1])
+		for round in lines:
+			if len(round) == 10:
+				round_elements = round.split(',')
+				table.date.append(round_elements[2])
+		
+		# add round and division ('jv' and R4)
+		
+		for round in lines:
+			if len(round) == 10:
+				round_elements = round.split(',')
+
+				aff_one = round_elements[3].split('-')
+				first_gender = aff_one[0] 
+				first_probability = int(aff_one[1])
+				first_cases = int(aff_one[2])
+				first_debater = [first_gender, first_probability, first_cases]
+
+				aff_two = round_elements[4].split('-')
+				two_gender = aff_two[0] 
+				two_probability = int(aff_two[1])
+				two_cases = int(aff_two[2])
+				two_debater = [two_gender, two_probability, two_cases]
+
+				table.aff.append([first_debater, two_debater])
+		for round in lines:
+			if len(round) == 10:
+				round_elements = round.split(',')
+
+				neg_one = round_elements[5].split('-')
+				first_gender = neg_one[0] 
+				first_probability = int(neg_one[1])
+				first_cases = int(neg_one[2])
+				first_debater = [first_gender, first_probability, first_cases]
+
+				neg_two = round_elements[6].split('-')
+				two_gender = neg_two[0] 
+				two_probability = int(neg_two[1])
+				two_cases = int(neg_two[2])
+				two_debater = [two_gender, two_probability, two_cases]
+
+				table.neg.append([first_debater, two_debater])
+		for round in lines:
+			if len(round) == 10:
+				round_elements = round.split(',')
+				table.vote.append(round_elements[7])
+		return {'table':table}
+	else:
+		return {}
+
+def test_file_to_dict(file_name):
+	#add try case file could not be found
+	print("started files to dict")
+	test_case_file = open(file_name, "r")
+	header = ''
+	lines = list()
+	dictonary = {'test':True}
+	for line in test_case_file:
+		# print(line)
+		if '#' != line[0:1]:
+			if '--' == line[0:2]:
+				temp = process_section(header, lines)
+				dictonary.update(temp)
+				header = line[2:-3]
+				# print("found header ", header )
+				lines = list()
+			else:
+				# print("content because ", line[0:2], "douesn't equal '--'")
+				lines.append(line)
+	temp = process_section(header, lines)
+	dictonary.update(temp)
+	print("found header ", header )
+	test_case_file.close()
+	return dictonary
+
+
+
+def get_test_judge(file_name):
+	test_case = test_file_to_dict(file_name)
+	new_judge = Judge.Judge()
+	new_judge.name = test_case['name']
+	new_judge.paradigm_updated = test_case['date']
+	new_judge.paradigm = test_case['paradigm']
+	new_judge.rounds = test_case['table']
+	new_judge.recorded_rounds = len(new_judge.rounds)
+	return new_judge
+
+
  
 #used so that you can parse "full judging record" by row before going by line to populate a judge object with round objects
 class Table:
@@ -28,9 +143,10 @@ class Table:
 		rounds = list()
 		with concurrent.futures.ThreadPoolExecutor() as executor:
 			for i in range(len(self.division)):
-				print("starting round", i ,'out of', len(self.division))
 				try:
 					rounds_proceses.append(executor.submit(self.make_round, i))
+					print("starting round", i ,'out of', len(self.division))
+
 				except:
 					print("a team name thread couldn't be started")
 		for i in rounds_proceses:
@@ -47,39 +163,98 @@ class Table:
 
 
 def getCompetitors(WEBSITE_ADDRESS):
-	# Using Chrome to access web for debuging
-	driver = webdriver.Chrome()
-	print("finding competitors names")
-	# USe PhantomJS for speed (not working yet)
-	# driver = webdriver.PhantomJS(executable_path=phantomjs_path)
-	# driver = webdriver.phantomjs()
-	# driver.set_window_size(1120, 550)
+	USE_SELENIUM = False
+	if USE_SELENIUM:
+		# Using Chrome to access web for debuging
+		driver = webdriver.Chrome()
+		print("finding competitors names")
+		# USe PhantomJS for speed (not working yet)
+		# driver = webdriver.PhantomJS(executable_path=phantomjs_path)
+		# driver = webdriver.phantomjs()
+		# driver.set_window_size(1120, 550)
 
-	# Open the website
-	try:
-		driver.get(WEBSITE_ADDRESS)
+		# Open the website
+		try:
+			driver.get(WEBSITE_ADDRESS)
 
-		names = list()
+			names = list()
 
-		# get name, paradigm, and date of update
-		# //*[@id="content"]/div[3]/div[1]/span[1]/h4
+			# get name, paradigm, and date of update
+			# //*[@id="content"]/div[3]/div[1]/span[1]/h4
 
-		raw_names = driver.find_element(By.XPATH, './/*[@id="content"]/div[3]/div[1]/span[1]/h4').text
-		print(raw_names)
-		split_raw_names = raw_names.split(" & ")
-		for i in split_raw_names:
-			try:
-				names.append(i.split()[0])
-			except:
-				names.append(i)
-				print("i'm triggered")
-		driver.quit()
-		return names
+			raw_names = driver.find_element(By.XPATH, './/*[@id="content"]/div[3]/div[1]/span[1]/h4').text
+			print(raw_names)
+			split_raw_names = raw_names.split(" & ")
+			for i in split_raw_names:
+				try:
+					names.append(i.split()[0])
+				except:
+					names.append(i)
+					print("i'm triggered")
+			driver.quit()
+			return names
 
-	except Exception as e: 
-		print(e)
-		driver.quit()
-		return None
+		except Exception as e: 
+			print(e)
+			driver.quit()
+			return None
+	else:
+		try: 
+			print('start')
+			u2 = urllib.request.urlopen(WEBSITE_ADDRESS, timeout=30) # timeout=30
+			print('end')
+			# for i in range(len(u2.readlines())):
+			# 	print(i,"   ", u2.readlines()[i])
+			counter = 0
+			raw_names = ''
+			names = list()
+			next_line = 0
+			for lines in u2.readlines():
+				# print("for loop")
+				if '<h4 class="nospace semibold">' in str(lines):
+					next_line = 2
+				elif next_line != 0:
+						raw_names += str(lines)
+						print (counter, lines)
+						next_line -= next_line
+				counter += 1
+			# try:
+			# 	debater_url = urllib.request.urlopen(WEBSITE_ADDRESS)
+			# 	debater_names_html = debater_url.read().decode("utf8")
+			# 	debater_url.close()
+			# except Exception as e:
+			# 	print(e)
+			# 	print("issue using urllib to find debater's names")
+			# 	debater_url.close()
+			# 	return None
+
+			# # print(debater_names_html)
+			# index_of_start_of_names = debater_names_html.index('<h4 class="nospace semibold">')+27
+			# index_of_end_of_names = debater_names_html.index('</h4>', index_of_start_of_names)
+			# print('start index is', index_of_start_of_names)
+			# print('end index is', index_of_end_of_names)
+			# raw_names = debater_names_html[index_of_end_of_names:index_of_end_of_names]
+			# print(raw_names)
+			raw_names = raw_names.replace(r"\t", '').replace("b'", '').replace(r"\n'", '')
+			split_raw_names = raw_names.split("&amp;")
+			for i in split_raw_names:
+				if "<span" in i:
+						print("coulnd't handle ", raw_names)
+						names.append('')
+				else:
+					try:
+						names.append(i.split()[0])
+					except:
+						names.append(i)
+						print("i'm triggered")
+			print(names)
+			return names
+		except Exception as e: 
+			print(e)
+			print('trying again')
+			return getCompetitors(WEBSITE_ADDRESS)
+
+
 
 
 def get_judge (WEBSITE_ADDRESS):
@@ -172,7 +347,9 @@ def get_judge (WEBSITE_ADDRESS):
 	driver.quit()
 	print("finished reading judge")
 	new_judge.rounds = table.to_round_list()
+	new_judge.recorded_rounds = len(table.division)
 	print("made judge")
+	print("found data on ", len(new_judge.rounds), " out of ", new_judge.recorded_rounds)
 	return new_judge
 
 	# except Exception as e: 

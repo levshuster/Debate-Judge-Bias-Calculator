@@ -3,8 +3,10 @@ from fractions import Fraction
 import datetime
 import pickle
 import Gender
+from Gender import vote_for_more_woman
 
 USE_PERCENTAGE = True
+
 
 #takes in a intager representing a percentage and resturns a explanation of the fraction
 def fraction_to_statment (percentage, left_side = 'thing a', right_side = 'thing b'):
@@ -16,9 +18,6 @@ def fraction_to_statment (percentage, left_side = 'thing a', right_side = 'thing
 
 # holds data for one debate round
 class Round:
-	aff_cumulative_gender = None
-	neg_cumulative_gender = None
-
 	def __init__(self, division, date, aff, neg, vote, result):
 		self.division = division
 		year, month, day = date.split('-')
@@ -30,7 +29,13 @@ class Round:
 		#MM vs MM and FF vs FF and F? vs MM... are thrown out
 		#if FF win over FM then +.5	if MM win over FM then -.5
 		#if FF win over MM then +1	if MM win over FF then -1
-		self.vote_for_more_woman = Gender.vote_for_more_woman(aff, neg, vote)
+		try:
+			self.vote_for_more_woman = Gender.vote_for_more_woman(aff, neg, vote)
+			self.failed_to_find_gender = 0
+
+		except:
+			self.vote_for_more_woman = 0
+			self.failed_to_find_gender = 1
 	def __str__(self):
 		return str(self.division) + '\t' + str(self.date) + '\t' + str(self.vote) + '\t' + str(self.result) + '\t' + str(self.vote_for_more_woman)
 	
@@ -39,12 +44,16 @@ class Round:
 class Judge:
 	SHOULD_PRINT_LONG = False
 
-	def __init__(self, name = 'no name', paradigm = '''no paradigm''', paradigm_updated='no paradigm', tournaments = list(), rounds = list() ):
+	def __init__(self, name = 'no name', paradigm = '''no paradigm''', paradigm_updated='no paradigm', tournaments = list(), rounds = list(), recorded_rounds = 0 ):
 		self.name = name
 		self.paradigm = paradigm
 		self.paradigm_updated = paradigm_updated
 		self.tournaments = tournaments
 		self.rounds = rounds
+		self.recorded_rounds = recorded_rounds
+		self.failed_to_find_gender = 0
+		for i in rounds:
+			self.failed_to_find_gender += i.failed_to_find_gender
 	
 	def align_with_panal_percentage(self, start_date=None, end_date=None):
 		decision_aligns_with_majority = 0
@@ -56,7 +65,10 @@ class Judge:
 						panel_participation += 1
 						if i.result.split()[0] == i.vote:
 							decision_aligns_with_majority += 1
-		return decision_aligns_with_majority/panel_participation*100
+		if panel_participation == 0:
+			return 100
+		else:
+			return decision_aligns_with_majority/panel_participation*100
 	def winning_gender_bias(self, start_date=None, end_date=None):
 		woman_win_counter = 0
 		man_win_counter = 0
@@ -82,14 +94,16 @@ class Judge:
 
 	def aff_ballot_percentage(self, start_date=None, end_date=None):
 		aff_counter = 0
+		neg_counter = 0
 		for i in self.rounds:
 			if start_date == None or start_date <= i.date:
 				if end_date == None or end_date >= i.date:
 					if str(i.vote) == 'Aff' or str(i.vote) == 'Pro':
 						aff_counter=1 + aff_counter
-					# elif str(i.vote) != 'Neg':
-						# print("Each round must end with a Aff or Neg ballot, this ballot got a "+i.vote+" ballot")
-		return int(aff_counter/len(self.rounds)*100)
+					elif str(i.vote) == 'Neg' or str(i.vote) == 'Con':
+						neg_counter=1 + neg_counter
+
+		return int(aff_counter/(aff_counter+neg_counter)*100)
 
 	def __str__(self):
 		result = '\n\n\n'+self.name
@@ -97,7 +111,8 @@ class Judge:
 		result += '\n\nTENDENCY TO AGREE WITH MAJORITY\n'+fraction_to_statment(self.align_with_panal_percentage(), 'ballots who agree with majority of the panal', 'ballots who disagree with the majority of the judging panel')
 		
 		gender_bias_results = self.winning_gender_bias()
-		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(gender_bias_results['woman_win_percentage'], 'Ballots for woman', 'ballots for men')+'\nthat bias rating is the result of an aditional ' + str(int(gender_bias_results['number_of_ballots_diffrence']))+" ballots"
+		result += '\n\nGENDER BIAS?\n'+fraction_to_statment(gender_bias_results['woman_win_percentage'], 'Ballots for woman', 'ballots for men')
+		result += '\nthat bias rating is the result of an aditional ' + str(int(gender_bias_results['number_of_ballots_diffrence']))+" ballots out of "+ str(len(self.rounds)-self.failed_to_find_gender)
 
 		if self.SHOULD_PRINT_LONG:
 			result += '\n\n' + "paradigm last updated " + self.paradigm_updated +  "\n\n\nPARADIGM"+self.paradigm +'\n\n'+"PARTICIPATED AS A JUDGE IN:\n"

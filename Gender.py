@@ -1,7 +1,8 @@
 import requests, json
-
-from requests import api
 import from_tab
+
+USE_API = True
+SERTAINTY_THREASHOLD = 0.7
 
 # The MIT License (MIT)
 # Copyright (c) 2013 block8437/acceptable-security
@@ -40,26 +41,21 @@ def getGenders(names):
 
 
 
-SERTAINTY_THREASHOLD = 0.7
-NUMBER_OF_API_CALLS_PER_JUDGE = 100
-api_calls_so_far = 0
 #MM vs MM and FF vs FF and F? vs MM... are thrown out (0)
 #if FF win over FM then +.5	if MM win over FM then -.5
 #if FF win over MM then +1	if MM win over FF then -1
 def vote_for_more_woman(aff_url, neg_url, vote):
-	aff_names = from_tab.getCompetitors(aff_url)
-	neg_names = from_tab.getCompetitors(neg_url)
-	# print(aff_names)
-	# print(neg_names)
-	global api_calls_so_far
-	if api_calls_so_far < NUMBER_OF_API_CALLS_PER_JUDGE and aff_names and neg_names:
-		api_calls_so_far+=2
-		return getGenderBalance(aff_names+neg_names, vote)
+	#if statment to account for test files
+	if isinstance(aff_url[0], int):
+		return getGenderBalance(aff_url + neg_url, vote)
 	else:
-		return 0
+		aff_names = from_tab.getCompetitors(aff_url)
+		neg_names = from_tab.getCompetitors(neg_url)
+		if USE_API:
+			return getGenderBalance(getGenders(aff_names+neg_names), vote)
+		else: return 100
 
-def getGenderBalance(names=list(), vote=None):
-	genders_of_names = getGenders(names)
+def getGenderBalance(genders_of_names=list(), vote=None):
 	number_of_debators = len(genders_of_names)
 
 	#put winning team first and remove rounds that don't end in normal ballot
@@ -67,19 +63,26 @@ def getGenderBalance(names=list(), vote=None):
 		count_step=-1
 		count_start = number_of_debators
 		count_end = 0
+		print("neg win")
 	elif vote == 'Aff' or vote == 'Pro':
 		count_step=1
 		count_start = -1
 		count_end = number_of_debators-1
+		print("aff win")
 	else:
 		return 0
+
 	print(genders_of_names)
+	print(number_of_debators)
+
 	# removes names that are not clearly femine or masculine
 	for i in genders_of_names:
 		if float(i[1])<SERTAINTY_THREASHOLD:
 			return 0
 
 	# handles Lincon Douglas Debate, Big Questions, etc.
+	print(count_start)
+	print('gender of names ', genders_of_names[count_start])
 	if number_of_debators == 2 :
 		if genders_of_names[count_start][0] == 'male':
 			return -1
