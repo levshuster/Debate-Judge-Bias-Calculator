@@ -5,6 +5,51 @@ import Judge
 import concurrent.futures
 import urllib.request
 
+
+#used so that you can parse "full judging record" by row before going by line to populate a judge object with round objects
+class Table:
+	def __init__(self, division = list(), date = list(), aff=list(), neg = list(), vote = list(), result = list() ):
+		self.division = division
+		self.date = date
+		self.aff = aff
+		self.neg = neg
+		self.vote = vote
+		self.result = result
+	
+	def make_round(self, counter):
+		print('aff is', self.aff[counter])
+		print(self.division[counter], self.date[counter], self.aff[counter], self.neg[counter], self.vote[counter], self.result[counter])
+		return Judge.Round(self.division[counter], self.date[counter], self.aff[counter], self.neg[counter], self.vote[counter], self.result[counter])
+
+	def single_thread_to_round_list(self):
+		rounds = list()
+		for i in range(len(self.division)):
+			print('starting round', i)
+			rounds.append(self.make_round(i))
+		return rounds
+	def to_round_list(self):
+		rounds_proceses = list()
+		rounds = list()
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			for i in range(len(self.division)):
+				try:
+					rounds_proceses.append(executor.submit(self.make_round, i))
+					print("starting round", i ,'out of', len(self.division))
+
+				except:
+					print("a team name thread couldn't be started")
+		for i in rounds_proceses:
+			print("finishing round", rounds_proceses.index(i) ,'out of', len(rounds_proceses))
+			try:
+				rounds.append(i.result())
+			except Exception as e: 
+				print(e)
+				print("a team name result couldn't be found")
+		return rounds
+
+
+
+
 #Handles Test files
 def process_section(header, lines):
 	print('started ', header)
@@ -12,7 +57,7 @@ def process_section(header, lines):
 		big_line = ''
 		for line in lines:
 			big_line += line +' '
-		return {'name':big_line}	
+		return {'name':big_line.strip()}	
 	if header == 'Paradigm':
 		big_line = ''
 		for line in lines:
@@ -28,55 +73,63 @@ def process_section(header, lines):
 		print(lines, len(lines))
 		table = Table()
 		for round in lines:
-			if len(round) == 10:
+			print('lentgh of the round is ', len(round))
+			print("round is", round)
+			if len(round) > 1:
+				print('triggered one')
 				print(round)
 				round_elements = round.split(',')
 				table.division.append(round_elements[1])
 		for round in lines:
-			if len(round) == 10:
+			if len(round) > 1:
+				print('triggered two')
 				round_elements = round.split(',')
 				table.date.append(round_elements[2])
 		
 		# add round and division ('jv' and R4)
 		
 		for round in lines:
-			if len(round) == 10:
-				round_elements = round.split(',')
+			if len(round) > 1:
+				round_elements = round.split(', ')
 
-				aff_one = round_elements[3].split('-')
+				aff_one = round_elements[6].split('-')
 				first_gender = aff_one[0] 
-				first_probability = int(aff_one[1])
+				first_probability = float(aff_one[1])
 				first_cases = int(aff_one[2])
 				first_debater = [first_gender, first_probability, first_cases]
 
-				aff_two = round_elements[4].split('-')
+				aff_two = round_elements[6].split('-')
 				two_gender = aff_two[0] 
-				two_probability = int(aff_two[1])
+				two_probability = float(aff_two[1])
 				two_cases = int(aff_two[2])
 				two_debater = [two_gender, two_probability, two_cases]
 
 				table.aff.append([first_debater, two_debater])
 		for round in lines:
-			if len(round) == 10:
-				round_elements = round.split(',')
+			if len(round) > 1:
+				round_elements = round.split(', ')
 
-				neg_one = round_elements[5].split('-')
+				neg_one = round_elements[7].split('-')
 				first_gender = neg_one[0] 
-				first_probability = int(neg_one[1])
+				first_probability = float(neg_one[1])
 				first_cases = int(neg_one[2])
 				first_debater = [first_gender, first_probability, first_cases]
 
-				neg_two = round_elements[6].split('-')
+				neg_two = round_elements[8].split('-')
 				two_gender = neg_two[0] 
-				two_probability = int(neg_two[1])
+				two_probability = float(neg_two[1])
 				two_cases = int(neg_two[2])
 				two_debater = [two_gender, two_probability, two_cases]
 
 				table.neg.append([first_debater, two_debater])
 		for round in lines:
-			if len(round) == 10:
+			if len(round) > 1:
 				round_elements = round.split(',')
-				table.vote.append(round_elements[7])
+				table.vote.append(round_elements[9])
+
+				# must add way to simulate panel decision
+				table.result.append(None)
+
 		return {'table':table}
 	else:
 		return {}
@@ -114,51 +167,13 @@ def get_test_judge(file_name):
 	new_judge.name = test_case['name']
 	new_judge.paradigm_updated = test_case['date']
 	new_judge.paradigm = test_case['paradigm']
-	new_judge.rounds = test_case['table']
+	new_judge.rounds = test_case['table'].single_thread_to_round_list()
+
 	new_judge.recorded_rounds = len(new_judge.rounds)
 	return new_judge
 
 
  
-#used so that you can parse "full judging record" by row before going by line to populate a judge object with round objects
-class Table:
-	def __init__(self, division = list(), date = list(), aff=list(), neg = list(), vote = list(), result = list() ):
-		self.division = division
-		self.date = date
-		self.aff = aff
-		self.neg = neg
-		self.vote = vote
-		self.result = result
-	
-	def make_round(self, counter):
-		return Judge.Round(self.division[counter], self.date[counter], self.aff[counter], self.neg[counter], self.vote[counter], self.result[counter])
-
-	def single_thread_to_round_list(self):
-		rounds = list()
-		for i in range(len(self.division)):
-			rounds.append(self.make_round(i))
-		return rounds
-	def to_round_list(self):
-		rounds_proceses = list()
-		rounds = list()
-		with concurrent.futures.ThreadPoolExecutor() as executor:
-			for i in range(len(self.division)):
-				try:
-					rounds_proceses.append(executor.submit(self.make_round, i))
-					print("starting round", i ,'out of', len(self.division))
-
-				except:
-					print("a team name thread couldn't be started")
-		for i in rounds_proceses:
-			print("finishing round", rounds_proceses.index(i) ,'out of', len(rounds_proceses))
-			try:
-				rounds.append(i.result())
-			except Exception as e: 
-				print(e)
-				print("a team name result couldn't be found")
-		return rounds
-
-
 
 
 
@@ -200,7 +215,7 @@ def getCompetitors(WEBSITE_ADDRESS):
 			return None
 	else:
 		try: 
-			print('start')
+			print('start 1')
 			u2 = urllib.request.urlopen(WEBSITE_ADDRESS, timeout=30) # timeout=30
 			print('end')
 			# for i in range(len(u2.readlines())):

@@ -46,9 +46,12 @@ def getGenders(names):
 #if FF win over MM then +1	if MM win over FF then -1
 def vote_for_more_woman(aff_url, neg_url, vote):
 	#if statment to account for test files
-	if isinstance(aff_url[0], int):
+	if isinstance(aff_url, list):
+		print('is list')
+		print('gender ballance is ', getGenderBalance(aff_url + neg_url, vote))
 		return getGenderBalance(aff_url + neg_url, vote)
 	else:
+		print('not list')
 		aff_names = from_tab.getCompetitors(aff_url)
 		neg_names = from_tab.getCompetitors(neg_url)
 		if USE_API:

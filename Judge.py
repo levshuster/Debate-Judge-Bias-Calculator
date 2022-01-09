@@ -63,7 +63,7 @@ class Judge:
 				if end_date == None or end_date >= i.date:
 					if i.result: 
 						panel_participation += 1
-						if i.result.split()[0] == i.vote:
+						if i.vote in i.result.split()[0] or i.vote in i.result:
 							decision_aligns_with_majority += 1
 		if panel_participation == 0:
 			return 100
@@ -96,9 +96,12 @@ class Judge:
 		aff_counter = 0
 		neg_counter = 0
 		for i in self.rounds:
+			print('round triggered')
 			if start_date == None or start_date <= i.date:
 				if end_date == None or end_date >= i.date:
-					if str(i.vote) == 'Aff' or str(i.vote) == 'Pro':
+					print('get through date with: ', str(i.vote))
+					if 'Aff' in str(i.vote) or 'Pro' in str(i.vote):
+						print('aff vote triggered')
 						aff_counter=1 + aff_counter
 					elif str(i.vote) == 'Neg' or str(i.vote) == 'Con':
 						neg_counter=1 + neg_counter
