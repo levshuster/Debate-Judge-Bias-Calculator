@@ -47,8 +47,8 @@ def getGenders(names):
 def vote_for_more_woman(aff_url, neg_url, vote):
 	#if statment to account for test files
 	if isinstance(aff_url, list):
-		print('is list')
-		print('gender ballance is ', getGenderBalance(aff_url + neg_url, vote))
+		print('is list    vote is"'+vote+'"')
+		print('\n\n         gender ballance is ', getGenderBalance(aff_url + neg_url, vote))
 		return getGenderBalance(aff_url + neg_url, vote)
 	else:
 		print('not list')
@@ -59,30 +59,32 @@ def vote_for_more_woman(aff_url, neg_url, vote):
 		else: return 100
 
 def getGenderBalance(genders_of_names=list(), vote=None):
+	print('gender of names is', genders_of_names)
 	number_of_debators = len(genders_of_names)
 
 	#put winning team first and remove rounds that don't end in normal ballot
-	if vote == "Neg" or vote == 'Con':
+	if "Neg" in vote or 'Con' in vote:
 		count_step=-1
 		count_start = number_of_debators
 		count_end = 0
 		print("neg win")
-	elif vote == 'Aff' or vote == 'Pro':
+	elif 'Aff' in vote or 'Pro' in vote:
 		count_step=1
 		count_start = -1
 		count_end = number_of_debators-1
 		print("aff win")
 	else:
+		print('else case triggered')
 		return 0
 
-	print(genders_of_names)
 	print(number_of_debators)
 
 	# removes names that are not clearly femine or masculine
 	for i in genders_of_names:
 		if float(i[1])<SERTAINTY_THREASHOLD:
+			print(i, "doesn't meet the sertainty threashold")
 			return 0
-
+	print('finished unsertanty filter\n\n')
 	# handles Lincon Douglas Debate, Big Questions, etc.
 	print(count_start)
 	print('gender of names ', genders_of_names[count_start])
