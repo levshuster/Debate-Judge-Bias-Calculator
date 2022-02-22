@@ -89,7 +89,6 @@ class Judge:
 			rslts['male_bias']=True
 		else:			
 			rslts['male_bias']=False
-
 		return rslts
 
 	def aff_ballot_percentage(self, start_date=None, end_date=None):
