@@ -27,6 +27,7 @@ class Table:
 			print('starting round', i)
 			rounds.append(self.make_round(i))
 		return rounds
+
 	def to_round_list(self):
 		rounds_proceses = list()
 		rounds = list()
@@ -183,7 +184,7 @@ def getCompetitors(WEBSITE_ADDRESS):
 		# Using Chrome to access web for debuging
 		driver = webdriver.Chrome()
 		print("finding competitors names")
-		# USe PhantomJS for speed (not working yet)
+		# Use PhantomJS for speed (not working yet):
 		# driver = webdriver.PhantomJS(executable_path=phantomjs_path)
 		# driver = webdriver.phantomjs()
 		# driver.set_window_size(1120, 550)
@@ -195,8 +196,6 @@ def getCompetitors(WEBSITE_ADDRESS):
 			names = list()
 
 			# get name, paradigm, and date of update
-			# //*[@id="content"]/div[3]/div[1]/span[1]/h4
-
 			raw_names = driver.find_element(By.XPATH, './/*[@id="content"]/div[3]/div[1]/span[1]/h4').text
 			print(raw_names)
 			split_raw_names = raw_names.split(" & ")
@@ -215,9 +214,7 @@ def getCompetitors(WEBSITE_ADDRESS):
 			return None
 	else:
 		try: 
-			print('start 1')
 			u2 = urllib.request.urlopen(WEBSITE_ADDRESS, timeout=30) # timeout=30
-			print('end')
 			# for i in range(len(u2.readlines())):
 			# 	print(i,"   ", u2.readlines()[i])
 			counter = 0
@@ -225,7 +222,6 @@ def getCompetitors(WEBSITE_ADDRESS):
 			names = list()
 			next_line = 0
 			for lines in u2.readlines():
-				# print("for loop")
 				if '<h4 class="nospace semibold">' in str(lines):
 					next_line = 2
 				elif next_line != 0:
@@ -304,35 +300,34 @@ def get_judge (WEBSITE_ADDRESS):
 	paradigm_update_and_author = paradigm_update_and_author.replace('\n', '')
 	paradigm_update_and_author = paradigm_update_and_author.replace('\t', '')
 	new_judge.name, new_judge.paradigm_updated = paradigm_update_and_author.split(' ParadigmLast changed ')
-	# print("name is " +new_judge.name)
-	# print("date is " +new_judge.paradigm_updated)
 
 	paradigm_text = paradigm_text.replace('<p>', '',)
 	paradigm_text = paradigm_text.replace('</p>', '',)
 	paradigm_text = paradigm_text.replace('</strong>', '',)
 	paradigm_text = paradigm_text.replace('<strong>', '',)
 	new_judge.paradigm = paradigm_text
-	# print(new_judge.paradigm)
 
 	try:
 		table = driver.find_element(By.ID, 'record')
 		# remove try then code runs reliably
 		try:
 			for row in table.find_elements(By.XPATH, ".//tr"):
+
 				# identify tournaments judge has participated in
 				for td in row.find_elements(By.XPATH, ".//td[@class='nospace'][1]"):
 					tournament = td.text
 					if len(new_judge.tournaments) == 0 or tournament != new_judge.tournaments[-1]:
 						new_judge.tournaments.append(tournament)
-						# print(tournament)
 				table = Table()
+
 				# Identify division
 				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap centeralign'][1]"):
 					table.division.append(td.text)
+
 				# Identify date
 				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap'][1]"):
 					table.date.append(td.text)
-					# print(td.text)
+					
 				# Identify aff url
 				for td in row.find_elements(By.XPATH, ".//td[@class='nospace'][3]/a"):
 					table.aff.append(td.get_attribute('href'))
@@ -340,19 +335,18 @@ def get_judge (WEBSITE_ADDRESS):
 					# print(td.text)
 					#You might also need a wait condition for presence of all elements located by css selector.
 					#elems = WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".sc-eYdvao.kvdWiq [href]")))
+				
 				# Identify neg url
 				for td in row.find_elements(By.XPATH, ".//td[@class='nospace'][4]/a"):
 					table.neg.append(td.get_attribute('href'))
-					# print(td.get_attribute('href'))
-					# print(td.text)
+				
 				# identify vote
 				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap'][2]"):
 					table.vote.append(td.text)
-					# print(td.text)
+
 				# identify result
 				for td in row.find_elements(By.XPATH, ".//td[@class='nowrap'][3]"):
 					table.result.append(td.text)
-					# print(td.text)
 
 		except Exception as e: 
 			print(e)

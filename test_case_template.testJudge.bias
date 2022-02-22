@@ -13,7 +13,11 @@ and also here
 
 --Rounds--
 # Tournament, Level, Date, Level, Round, Aff Debater 1 is female, Aff Debater 2 is female, Neg Debater 1 is female, Neg Debater 2 is female, Vote
-# were "is female" is gender-probability(out of one)-number of sources for decision
+# where "is female" is gender-probability(out of one)-number of sources for decision
 Minnesota Classic State Debate Tournament, HS, 2021-12-03, JV, R4, male-0.95-1007, female-0.94-2752, female-0.96-1251, male-0.99-6598, Aff
+# Minnesota Classic State Debate Tournament, HS, 2021-12-03, JV, R6, female-0.94-2752, female-0.94-2752, male-0.96-1251, male-0.99-6598, Aff
+# Minnesota Classic State Debate Tournament, HS, 2021-12-03, JV, R6, female-0.94-2752, female-0.94-2752, male-0.96-1251, male-0.99-6598, Neg
+# Minnesota Classic State Debate Tournament, HS, 2021-12-03, JV, R6, female-0.94-2752, female-0.94-2752, male-0.96-1251, male-0.99-6598, Neg
+
 
 #end of file

@@ -21,7 +21,6 @@ def getGenders(names):
 			cnt += 1
 			url = url + "&name[" + str(cnt) + "]=" + name
 		
-
 	req = requests.get("https://api.genderize.io?" + url)
 	results = json.loads(req.text)
 	
@@ -35,8 +34,7 @@ def getGenders(names):
 		elif result["gender"] is not None:
 			retrn.append((result["gender"], result["probability"], result["count"]))
 		else:
-			retrn.append((u'None',u'0.0',0.0))
-		
+			retrn.append((u'None',u'0.0',0.0))	
 	return retrn
 
 
@@ -107,6 +105,7 @@ def getGenderBalance(genders_of_names=list(), vote=None):
 		print((gender_list[0]+gender_list[1]-gender_list[2]-gender_list[3])/4)
 		return (gender_list[0]+gender_list[1]-gender_list[2]-gender_list[3])/4 #this won't make any sence until you write out all the possibilites
 	else: #debate forms with any other number of debaters get ignored
+		print('reached a round with a number of participants not equal to 2 or 4')
 		return 0
 # print(getGenderBalance(['Aimen', 'Harini', 'Felix', 'Ethan'], 'Neg'))
 # [('male', 0.95, 1007), ('female', 0.94, 2752), ('female', 0.96, 1251), ('male', 0.99, 6598)
