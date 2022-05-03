@@ -10,16 +10,13 @@ https://sarahisomcenter.org/blog/2019/11/20/combatting-sexism-in-speech-and-deba
 https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3715996
 https://www.semanticscholar.org/paper/Gender-Disparities-in-Competitive-High-School-New-Tartakovsky/28818fee3ee742cbb88eabb93644ebf8ea8e4370
 
-# Judge-Bias-Calculator
+# How do you Quantify Discrimination?
 
 Desktop program that aims to measure sign of debate judge bias from tabroom records.
 ![image](https://user-images.githubusercontent.com/87684029/166580109-79c750e5-221a-4048-9bfa-5331ec036ae9.png)
 
-# Todo
+# Timeline
 
-- [ ] add round and division ('jv' and R4) line 90 in from_tab.py
+# Example Scenarios 
 
-- [ ] must add way to simulate panel decision line 131 in from_tab.py
-
-- [ ] add try case file could not be found line 139 in from_tab.py
-
+# Index of Files
