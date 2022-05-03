@@ -1,3 +1,10 @@
+# Introduction
+
+I’ve spent six years in competitive academic debate as a judge, team captain,  and competitor. One of the unique things about debate is the role of a judge. In the wider world judges determine if someone slides into a base before being tagged or decides if someone has broken a rule, but in debate, the judge decides who is more convincing. This introduces a huge amount of freedom to the judge and means that there is a huge amount of room for bias in the judge’s decision (as any participant will attest to). Also caused by this degree of freedom is any decision a judge makes will anger one of the two teams, so coaches quickly learn to dismiss crestfallen teenagers when they attribute their loss to a judge’s prejudice. 
+
+This project started in 2021 year when I stumbled across an API that takes a name and returns the gender the name likely belongs to. Because there are thousands of debate tournaments who posted the results of every round on the same website (including the names of debaters and judges), I decided to collect the information of every debate round a given judge has overseen and use the API to determine if said judge systematically votes for male debaters over female debaters (which would be a sign of sexism in a judge’s decision). From there I could consider the roster of judges at a given tournament or league to compare the amount of bias at different tournaments or leagues.
+
+
 # Judge-Bias-Calculator
 
 Desktop program that aims to measure sign of debate judge bias from tabroom records.
