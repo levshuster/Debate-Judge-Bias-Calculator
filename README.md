@@ -1,4 +1,8 @@
-# Introduction
+*Because this project has not reached even an alpha level and as such has not been shared publically: documentation, spelling, grammar, GIT edicate, and code clarity may be lacking, please be patient as I focus on functionality during this phase.*
+
+# Debate-Judge-Bias-Calculator: Desktop program that aims to measure sign of debate judge bias from tabroom records.
+
+## Introduction
 
 I’ve spent six years in competitive academic debate as a judge, team captain,  and competitor. One of the unique things about debate is the role of a judge. In the wider world judges determine if someone slides into a base before being tagged or decides if someone has broken a rule, but in debate, the judge decides who is more convincing. This introduces a huge amount of freedom to the judge and means that there is a huge amount of room for bias in the judge’s decision (as any participant will attest to). Also caused by this degree of freedom is any decision a judge makes will anger one of the two teams, so coaches quickly learn to dismiss crestfallen teenagers when they attribute their loss to a judge’s prejudice. 
 
@@ -10,18 +14,17 @@ https://sarahisomcenter.org/blog/2019/11/20/combatting-sexism-in-speech-and-deba
 https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3715996
 https://www.semanticscholar.org/paper/Gender-Disparities-in-Competitive-High-School-New-Tartakovsky/28818fee3ee742cbb88eabb93644ebf8ea8e4370
 
-# How do you Quantify Discrimination?
+## How do you Quantify Discrimination?
 
-Desktop program that aims to measure sign of debate judge bias from tabroom records.
 ![image](https://user-images.githubusercontent.com/87684029/166580109-79c750e5-221a-4048-9bfa-5331ec036ae9.png)
 
-# Timeline
+## Timeline
 
-# Example Scenarios using Command Line Interface
+## Example Scenarios using Command Line Interface
 
-## Student 
+### Student 
 
-## Tournament Organizer
+### Tournament Organizer
 
 Task: I want to identify which judges in at my tournament I should keep the closest eye on or only use when no other judges are available
 
@@ -30,9 +33,9 @@ Application of Debate-Judge_Bias-Caculator:
 2. Use the Batch_Scrape_Judging_record [List_of_judges.txt] command to collect the needed information on each judge named in the given text file and save it locally as a collection of .bias files
 3. Use the return_bias_pvalue_less_than [List_of_judges.txt] [pvalue_ceiling] to print all the judges with a p-value less than a given p-value 
 
-Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions. As such these judges should be kept away from new debaters, should be closely watched, 
+Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions. As such these judges should be kept away from new debaters, should be closely watched, or should not be allowed to judge at all.
 
-## League Leadership
+### League Leadership
 
 Task: I want to identify which judges in my league might most benif from anti-bias training
 
@@ -43,4 +46,4 @@ Application of Debate-Judge_Bias-Caculator:
 
 Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions.
 
-# Index of Files
+## Index of Files
