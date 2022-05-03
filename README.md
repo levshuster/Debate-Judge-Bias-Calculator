@@ -17,6 +17,30 @@ Desktop program that aims to measure sign of debate judge bias from tabroom reco
 
 # Timeline
 
-# Example Scenarios 
+# Example Scenarios using Command Line Interface
+
+## Student 
+
+## Tournament Organizer
+
+Task: I want to identify which judges in at my tournament I should keep the closest eye on or only use when no other judges are available
+
+Application of Debate-Judge_Bias-Caculator: 
+1. Use the Collect_Judge_List [Tabroom_URL] [Destination.txt] where Tabroom_URL is the link to your roster of judges for the upcoming tournament. This will save a text file that lists all the judges you wish to analyze 
+2. Use the Batch_Scrape_Judging_record [List_of_judges.txt] command to collect the needed information on each judge named in the given text file and save it locally as a collection of .bias files
+3. Use the return_bias_pvalue_less_than [List_of_judges.txt] [pvalue_ceiling] to print all the judges with a p-value less than a given p-value 
+
+Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions. As such these judges should be kept away from new debaters, should be closely watched, 
+
+## League Leadership
+
+Task: I want to identify which judges in my league might most benif from anti-bias training
+
+Application of Debate-Judge_Bias-Caculator: 
+1. Use the Collect_Judge_List [Tabroom_URL] [Destination.txt] to save a text file that lists all the judges you wish to analyze or manually enter the names of judges you wish to analyze in a new textfile 
+2. Use the Batch_Scrape_Judging_record [List_of_judges.txt] command to collect the needed information on each judge named in the given text file and save it locally as a collection of .bias files
+3. Use the return_bias_pvalue_less_than [List_of_judges.txt] [pvalue_ceiling] to print all the judges with a p-value less than p_value_ceiling 
+
+Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions.
 
 # Index of Files
