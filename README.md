@@ -1,4 +1,4 @@
-*Because this project has not reached even an alpha level and as such has not been shared publically: documentation, spelling, grammar, GIT edicate, and code clarity may be lacking, please be patient as I focus on functionality during this phase.*
+*This project has not reached even an alpha level and as such has not been shared publically: documentation, spelling, grammar, GIT edicate, and code clarity may be lacking, please be patient as I focus on functionality during this phase.*
 
 # Debate-Judge-Bias-Calculator: Desktop program that aims to measure sign of debate judge bias from tabroom records.
 
@@ -10,9 +10,9 @@ This project started in 2021 year when I stumbled across an API that takes a nam
 
 If you have any interest in learning about the rampant discrimination in United States Debate here are some great articles. 
 TLDR: there is a disgusting amount of sexism in debate which causes girls to be forced out of the activity at depressing rates. There has been quantitative research on the effect of sexism but no substantial work on the effect and existance of discriminatory Judges within the activity.
-https://sarahisomcenter.org/blog/2019/11/20/combatting-sexism-in-speech-and-debate-programs
-https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3715996
-https://www.semanticscholar.org/paper/Gender-Disparities-in-Competitive-High-School-New-Tartakovsky/28818fee3ee742cbb88eabb93644ebf8ea8e4370
+- https://sarahisomcenter.org/blog/2019/11/20/combatting-sexism-in-speech-and-debate-programs
+- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3715996
+- https://www.semanticscholar.org/paper/Gender-Disparities-in-Competitive-High-School-New-Tartakovsky/28818fee3ee742cbb88eabb93644ebf8ea8e4370
 
 ## How do you Quantify Discrimination?
 
@@ -23,6 +23,8 @@ https://www.semanticscholar.org/paper/Gender-Disparities-in-Competitive-High-Sch
 ## Example Scenarios using Command Line Interface
 
 ### Student 
+
+### Journalist
 
 ### Tournament Organizer
 
@@ -37,13 +39,27 @@ Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likel
 
 ### League Leadership
 
-Task: I want to identify which judges in my league might most benif from anti-bias training
+Task: I want to identify which judges in my league might most benifit from anti-bias training
 
 Application of Debate-Judge_Bias-Caculator: 
 1. Use the Collect_Judge_List [Tabroom_URL] [Destination.txt] to save a text file that lists all the judges you wish to analyze or manually enter the names of judges you wish to analyze in a new textfile 
 2. Use the Batch_Scrape_Judging_record [List_of_judges.txt] command to collect the needed information on each judge named in the given text file and save it locally as a collection of .bias files
 3. Use the return_bias_pvalue_less_than [List_of_judges.txt] [pvalue_ceiling] to print all the judges with a p-value less than p_value_ceiling 
 
-Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions.
+Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likely to let their internal sexism affect their judging decisions. Thus I now have a list of which judges in my leage might most benifit from anti-bias training
 
 ## Index of Files
+
+**.bias** files contain the debate round information needed to generate a judge object. By saving a file after collecting information on a judge but before saving information on a judge this decreases the amount of duplicate API calls and web scraping
+
+**.testJudge.bias** contains the debate round information needed to generate a judge object from arbitrary inputs. This is used for debugging purposes 
+
+**test_case_template.testJudge.bias** contains the information needed to create your own testJudge.bias file 
+
+**judge_stats.py** will eventually contain the code for the alpha releases comandline interface, however during the developmental phase it holds the main function of the project enabeling testers to create, save, load, and analyze .bias files by calling functions called in from_tab.py and Judge.py
+
+**Gender.py** provides the functionality to acsess the API who determins the gender and certainty of a given name and the file has a function to take the results of the API call and caculate the round score (see the How do you Quantify Discrimination? heading in the read me file)
+
+**from_tab.py** offers functions charged with scrapping tabroom to get a list of all the rounds a judge has prosided over, another part of this file scrapes all the names of competitors in each round
+
+**judge.py** handles the loading, analyzing and saving of judge objects 
