@@ -24,6 +24,10 @@ TLDR: there is a disgusting amount of sexism in debate which causes girls to be 
 
 ### Student 
 
+an example output on a judge inwhich the program detects no sign of bias might look like:
+![image](https://user-images.githubusercontent.com/87684029/166615374-13d77729-4dbf-46d7-9489-68bf2a95e013.png)
+
+
 ### Journalist
 
 ### Tournament Organizer
@@ -63,3 +67,4 @@ Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likel
 **from_tab.py** offers functions charged with scrapping tabroom to get a list of all the rounds a judge has prosided over, another part of this file scrapes all the names of competitors in each round
 
 **judge.py** handles the loading, analyzing and saving of judge objects 
+
