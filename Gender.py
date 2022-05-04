@@ -1,7 +1,10 @@
 import requests, json
 import from_tab
 
+# used when you don't need to caculate the gender of debaters (calculate aff bias or how often a judge agrees with the majority) and want to concerve API calls
 USE_API = True
+
+# if the API returns a certinnty level (how likely the given first name belongs to the gender it predicts) below this value then the function will dismiss the entire round it is working on
 SERTAINTY_THREASHOLD = 0.7
 
 # The MIT License (MIT)
@@ -38,16 +41,24 @@ def getGenders(names):
 	return retrn
 
 
+# Example usage
+# print(getGenderBalance(['Aimen', 'Harini', 'Felix', 'Ethan'], 'Neg'))
+# [('male', 0.95, 1007), ('female', 0.94, 2752), ('female', 0.96, 1251), ('male', 0.99, 6598)
 
+# Round score table
 #MM vs MM and FF vs FF and F? vs MM... are thrown out (0)
 #if FF win over FM then +.5	if MM win over FM then -.5
 #if FF win over MM then +1	if MM win over FF then -1
+
+# given the url to the TABROOM page for a specifc debate team, scrape the names of competitors, run the names through the gender API then caculate a round score
 def vote_for_more_woman(aff_url, neg_url, vote):
+
 	#if statment to account for test files
 	if isinstance(aff_url, list):
 		print('is list    vote is"'+vote+'"')
 		print('\n\n         gender ballance is ', getGenderBalance(aff_url + neg_url, vote))
 		return getGenderBalance(aff_url + neg_url, vote)
+
 	else:
 		print('not list')
 		aff_names = from_tab.getCompetitors(aff_url)
@@ -107,7 +118,6 @@ def getGenderBalance(genders_of_names=list(), vote=None):
 	else: #debate forms with any other number of debaters get ignored
 		print('reached a round with a number of participants not equal to 2 or 4')
 		return 0
-# print(getGenderBalance(['Aimen', 'Harini', 'Felix', 'Ethan'], 'Neg'))
-# [('male', 0.95, 1007), ('female', 0.94, 2752), ('female', 0.96, 1251), ('male', 0.99, 6598)
+
 
 

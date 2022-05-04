@@ -1,13 +1,36 @@
+# used to scrape the dynamic portions of the website tabroom.com 
 import os
-from selenium import webdriver
+from selenium import webdriver 
 from selenium.webdriver.common.by import By
-import Judge
-import concurrent.futures
-import urllib.request
+
+import Judge # handles the loading, analyzing and saving of judge objects
+
+import concurrent.futures #handles paralelzation of the API calls and website scrapes to make the program roughly twenty times faster
+
+import urllib.request #used to scrape static portions of the website tabroom.com
+
+'''
+from_tab.py scrapps tabroom to get a list of all the rounds a judge has prosided over, 
+another part of this file scrapes all the names of competitors in each round
+'''
 
 
-#used so that you can parse "full judging record" by row before going by line to populate a judge object with round objects
+'''Example table that the table object turns to a list of rounds
+Tournament					Lv	Date		Ev	Rd	Aff		Neg			Vote
+Minnesota Classic State Debate Tournament	HS	12/3/2021	JV	Octas	Eastview PS	Minnehaha OS		Aff
+Minnesota Classic State Debate Tournament	HS	12/3/2021	JV	R5	Eastview PV	Century LZ		Neg
+Minnesota Classic State Debate Tournament	HS	12/3/2021	JV	R4	Orono CM	Southwest SM		Neg
+Minnesota Classic State Debate Tournament	HS	12/3/2021	JV	R3	Eastview SS	Mounds Park FL		Aff
+Minnesota Classic State Debate Tournament	HS	12/3/2021	JV	R2	Mayo KV		Stillwater Area BM	Aff
+Minnesota Classic State Debate Tournament	HS	12/3/2021	JV	R1	Southwest KM	Eastview CM		Neg
+MN Classic Debate Tournament 3 Oct 16		HS	10/16/2021	JV	R3	Mounds Park AMB	Eastview SR		Neg
+MN Classic Debate Tournament 3 Oct 16		HS	10/16/2021	JV	R2	Century WW	Mounds Park WN		Aff
+'''
+
+# Because the webscrapper reads down each column of a table before starting the next column to get a list of rounds inwhich each round is one row a table object is used
+# To make a round, Judge.Round (scrapes the webpage that belongs to each individual debate round) is called which is why it makes sense to implement multithreading here
 class Table:
+	# takes each column of the judges record table as a list (see above for example)
 	def __init__(self, division = list(), date = list(), aff=list(), neg = list(), vote = list(), result = list() ):
 		self.division = division
 		self.date = date
@@ -16,29 +39,33 @@ class Table:
 		self.vote = vote
 		self.result = result
 	
+	# takes a counter which represents the row number and assembles all the data from all the columns and feeds it into Judge.Round to create a [debate] round object
 	def make_round(self, counter):
 		print('aff is', self.aff[counter])
 		print(self.division[counter], self.date[counter], self.aff[counter], self.neg[counter], self.vote[counter], self.result[counter])
 		return Judge.Round(self.division[counter], self.date[counter], self.aff[counter], self.neg[counter], self.vote[counter], self.result[counter])
 
+	# runs make_round on every row
 	def single_thread_to_round_list(self):
 		rounds = list()
 		for i in range(len(self.division)):
 			print('starting round', i)
 			rounds.append(self.make_round(i))
 		return rounds
-
+	
+	# runs make_round on every row concurrently
 	def to_round_list(self):
-		rounds_proceses = list()
-		rounds = list()
+		rounds_proceses = list() #holds all the rounds currently being processed
+		rounds = list() #holds the result of Judge.Rounds
+
 		with concurrent.futures.ThreadPoolExecutor() as executor:
 			for i in range(len(self.division)):
 				try:
 					rounds_proceses.append(executor.submit(self.make_round, i))
 					print("starting round", i ,'out of', len(self.division))
-
 				except:
 					print("a team name thread couldn't be started")
+
 		for i in rounds_proceses:
 			print("finishing round", rounds_proceses.index(i) ,'out of', len(rounds_proceses))
 			try:
@@ -50,28 +77,54 @@ class Table:
 
 
 
+'''example of the type of file process_section handles
+--Name--
+Lev2 Shuster2
 
+--Paradigm--
+Paradigm Here
+and also here
+
+--Date of Paradigm Update--
+9 November 2019 5:23 AM PST
+
+--Rounds--
+# Tournament, Level, Date, Level, Round, Aff Debater 1 is female, Aff Debater 2 is female, Neg Debater 1 is female, Neg Debater 2 is female, Vote
+'''
+
+''' but process_section is given one chunk at a time like
+Header = "Paradigm"
+lines = {"Paradigm Here", "and also here"}
+'''
 #Handles Test files
+# decides how to process contents of a given section
+# the lines list contain each line of the test file that belongs to the given section  
 def process_section(header, lines):
 	print('started ', header)
+
 	if header == 'Name':
 		big_line = ''
 		for line in lines:
 			big_line += line +' '
 		return {'name':big_line.strip()}	
+	
 	if header == 'Paradigm':
 		big_line = ''
 		for line in lines:
 			big_line += line +'\n'
 		return {'paradigm':big_line}
+	
 	if header == 'Date of Paradigm Update':
 		big_line = ''
 		for line in lines:
 			big_line += line +' '
 		return {'date':big_line}
+	
 	if header == 'Rounds':
 		print("rounds found")
 		print(lines, len(lines))
+
+		# create a table object
 		table = Table()
 		for round in lines:
 			print('lentgh of the round is ', len(round))
@@ -87,7 +140,7 @@ def process_section(header, lines):
 				round_elements = round.split(',')
 				table.date.append(round_elements[2])
 		
-		# add round and division ('jv' and R4)
+		# TODO add round and division ('jv' and R4)
 		
 		for round in lines:
 			if len(round) > 1:
@@ -135,41 +188,50 @@ def process_section(header, lines):
 	else:
 		return {}
 
+
+
 def test_file_to_dict(file_name):
-	#add try case file could not be found
+	#TODO add try case file could not be found
 	print("started files to dict")
+
+
 	test_case_file = open(file_name, "r")
 	header = ''
 	lines = list()
 	dictonary = {'test':True}
 	for line in test_case_file:
 		# print(line)
-		if '#' != line[0:1]:
-			if '--' == line[0:2]:
-				temp = process_section(header, lines)
-				dictonary.update(temp)
-				header = line[2:-3]
+		if '#' != line[0:1]: # if the testJudge.bias file doesn't start with a comment symbol...
+			if '--' == line[0:2]: # if the line is a header line...
+				temp = process_section(header, lines) # process all the contents belonging to the previous header
+				dictonary.update(temp) # include newly processed content in the  dictonary 
+				header = line[2:-3] # get name of header (remove --- Header Name ---)
 				# print("found header ", header )
-				lines = list()
+				lines = list() # Empty lines list so the contents of the new header are the only things being processed when the next header roles around
 			else:
 				# print("content because ", line[0:2], "douesn't equal '--'")
-				lines.append(line)
-	temp = process_section(header, lines)
+				lines.append(line) # add the condents of the line to the lines list so the next time a header is hit it can process all the content belonging to the previous header
+	temp = process_section(header, lines) # process the content of the last header
 	dictonary.update(temp)
+
 	print("found header ", header )
 	test_case_file.close()
-	return dictonary
+	return dictonary # dictonary contains all the information needed to create a judge
 
 
-
+# called instead of get judge to process the .testJudge.bias files
 def get_test_judge(file_name):
+	# creates a dictonary of all the needed  information to create a judge
 	test_case = test_file_to_dict(file_name)
+
+	# creates a new judge object to hold the information given by .testJudge.bias 
 	new_judge = Judge.Judge()
+
+	# populate new-judge with the values exstracted from the dictonary
 	new_judge.name = test_case['name']
 	new_judge.paradigm_updated = test_case['date']
 	new_judge.paradigm = test_case['paradigm']
 	new_judge.rounds = test_case['table'].single_thread_to_round_list()
-
 	new_judge.recorded_rounds = len(new_judge.rounds)
 	return new_judge
 
@@ -267,20 +329,24 @@ def getCompetitors(WEBSITE_ADDRESS):
 
 
 
-
+# called by judge-stats
+# starts the entire web scraping project to create a judge object ready for analsis
 def get_judge (WEBSITE_ADDRESS):
-	# Using Chrome to access web for debuging
+
+	#during development process I am using chrome as selinums browser instead of a headless web browser for debugging
 	driver = webdriver.Chrome()
 
+	# after I have a minimume viable project I will transition from chrome to phantomJS to accelerate the web scraping process
 	# USe PhantomJS for speed (not working yet)
 	# driver = webdriver.PhantomJS(executable_path=phantomjs_path)
 	# driver = webdriver.phantomjs()
 	# driver.set_window_size(1120, 550)
 
 	# Open the website
-	# try:
 	driver.get(WEBSITE_ADDRESS)
-
+	
+	# create a judge object to populate with judges name, judges paradigm, date when the paradim was updated, list of tournaments the 
+	# judge has participated in, and list of [debate] rounds objects which the judge has overseen
 	new_judge = Judge.Judge()
 
 	# get name, paradigm, and date of update
@@ -299,17 +365,19 @@ def get_judge (WEBSITE_ADDRESS):
 	paradigm_update_and_author = paradigm_update_and_author.replace('<span class="half', '', 1)
 	paradigm_update_and_author = paradigm_update_and_author.replace('\n', '')
 	paradigm_update_and_author = paradigm_update_and_author.replace('\t', '')
+	# actual set statment for name and paradim update date
 	new_judge.name, new_judge.paradigm_updated = paradigm_update_and_author.split(' ParadigmLast changed ')
 
 	paradigm_text = paradigm_text.replace('<p>', '',)
 	paradigm_text = paradigm_text.replace('</p>', '',)
 	paradigm_text = paradigm_text.replace('</strong>', '',)
 	paradigm_text = paradigm_text.replace('<strong>', '',)
+	# actual set statment for paradigm test
 	new_judge.paradigm = paradigm_text
 
+	# this try block collects all the needed information and sends it to this judges table object
 	try:
 		table = driver.find_element(By.ID, 'record')
-		# remove try then code runs reliably
 		try:
 			for row in table.find_elements(By.XPATH, ".//tr"):
 
@@ -355,14 +423,12 @@ def get_judge (WEBSITE_ADDRESS):
 		print("Issue finding table")
 	driver.quit()
 	print("finished reading judge")
+
+	# takes the result of the table object and stores it in the rounds list of the new_judge object
 	new_judge.rounds = table.to_round_list()
 	new_judge.recorded_rounds = len(table.division)
-	print("made judge")
-	print("found data on ", len(new_judge.rounds), " out of ", new_judge.recorded_rounds)
-	return new_judge
 
-	# except Exception as e: 
-	# 	print(e)
-	# 	driver.quit()
-	# 	print("Issue opening website address")
-		
+	print("made judge")
+	print("found data on ", len(new_judge.rounds), " out of ", new_judge.recorded_rounds) #gives the sucess rate of the web scraping and api calls
+
+	return new_judge # returns the new judge object to either be saved as a .bias file or anylised
