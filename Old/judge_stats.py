@@ -25,13 +25,13 @@ if __name__ == '__main__':
 
 
 	# Example of how to get and analize judge information without ever saving it as a .bias file
-	# print(from_tab.get_judge(WEBSITE_ADDRESS))
+	print(from_tab.get_judge(Lev_WEBSITE_ADDRESS))
 
 	# Example of how to save a new judge as a .bias file from a URL
 	# Judge.save(from_tab.get_judge(Lev_WEBSITE_ADDRESS))
 
 	# Examples to load judges who already have a local file
-	print(Judge.load('Lev Shuster.bias'))
+	# print(Judge.load('Lev Shuster.bias'))
 	# print(Judge.load('Dave Kerpen.bias'))
 	# print(Judge.load('Laura Livingston.bias'))
 	# print(Judge.load('Sam Daily.bias'))

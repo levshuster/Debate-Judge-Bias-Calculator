@@ -19,20 +19,27 @@ class team
 class round
     tuple teams {aff: team, neg: team}
     judge judge
+    string: tournamentName
+    string: level
+    string: date
     tuple: format - policy, ld, etc
     tuple: division - varsity, novice, etc.
-    tuple: result - aff or neg
+    string: round - Octas, R5, R1, etc. 
+    Array<{aff: integer, neg: integer}>: result
+    tuple: vote - aff or neg
     getGenderWeighting() takes in a threshold and returns an integer or null (+4 means an all female team   beat an all male team) 
     
 class judge
-    string: paradigm
+    string: name
+    Array<{date: Date, text: string}>: paradigm
     gender: gender
     age: age
     Array<round>: record
     
 class tournament
-    Array<judge>
-    Array<rounds>
+    Array<judge>: judges
+    Array<round>: rounds
+    Array<string>:leagues
     getDivision() takes in an array of rounds and a string and returns an array of rounds with a divsion property that matches the string
     getFormat() takes in an array of rounds and a string and returns an array of rounds with a format property that matches the string
     

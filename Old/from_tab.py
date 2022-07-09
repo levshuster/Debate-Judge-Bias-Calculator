@@ -2,6 +2,10 @@
 import os
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+ser = Service("/Users/levshuster/Desktop/Learning/Debate-Judge-Bias-Calculator/chromedriver")
+op = webdriver.ChromeOptions()
+driver = webdriver.Chrome(service=ser, options=op)
 
 import Judge # handles the loading, analyzing and saving of judge objects
 
