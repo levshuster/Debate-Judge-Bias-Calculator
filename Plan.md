@@ -39,9 +39,11 @@ class judge
 class tournament
     Array<judge>: judges
     Array<round>: rounds
-    Array<string>:leagues
-    getDivision() takes in an array of rounds and a string and returns an array of rounds with a divsion property that matches the string
-    getFormat() takes in an array of rounds and a string and returns an array of rounds with a format property that matches the string
+    <!-- Array<string>:leagues -->
+    
+def getDivision() takes in an array of rounds and a string and returns an array of rounds with a divsion property that matches the string
+
+def getFormat() takes in an array of rounds and a string and returns an array of rounds with a format property that matches the string
     
 class league
     Array<tournament>
@@ -61,6 +63,7 @@ def getGender(name:string): gender
 - when creating a round, fucntion will check to see if teams already exist before creating new teams
 - create scrape tournament
 - create scrape league
+- estimate judge age
 - export as json
 - export as csv
 - export washington debate leage as kaggle dataset

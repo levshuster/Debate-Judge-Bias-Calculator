@@ -1,8 +1,10 @@
-from multiprocessing.dummy import Array
-import string
+from operator import ge
 from typing import Dict, List, Union
+from unittest import result
 from xmlrpc.client import DateTime
-import functools
+import math
+
+wordForAffermative = ['aff', 'gov']
 
 class Gender:
     confidance: int
@@ -42,21 +44,41 @@ class Team:
                 counter += debaterGender
         return counter
 
+
 class Round:
     judge: object # specifically it should be a judge object
+    tournamentName: str
+    level: str # hs, ms etc.
+    date: DateTime
+    eventFormat: str # Jv, Nov, etc.
+    eventRound: str # R1, Quart, etc.
     aff: Team
     neg: Team
+    vote: str # when creating round, check to ensure that vote is either aff or neg and no other string
+    result: Union[Dict[str, int], None] = {'aff':-1, 'neg':-1} # -1 means this is not a paneled round (default)
     
-    tournamentName: str
-    level: str
-    date: DateTime
-    eventFormat: str
-    division: str
-    eventRound: str
-    
-    result = {'aff':-1, 'neg':-1} # -1 means this is not a paneled round (default)
-    vote: str # when creating round, check to ensure that vote is eighter aff or neg and no other string
-
+    def getResult(self, string) -> Union[Dict[str, int], None]:
+        if 'nan' in string: return None
+        digit1:int = int(string[5])
+        digit2:int = int(string[7])
+        return {'aff':digit1, 'neg':digit2} if string.lower() in wordForAffermative else {'aff':digit2, 'neg':digit1}
+                
+            
+    def __init__(self, judge, tournamentName, level, date, eventFormat, eventRound, aff, neg, vote, result):
+        self.judge = judge
+        self.tournamentName = tournamentName
+        self.level = level
+        self.date = date
+        self.eventFormat = eventFormat
+        self.eventRound = eventRound
+        self.aff = aff
+        self.neg = neg
+        self.vote = vote
+        self.result = self.getResult(result)
+        
+    def __str__(self):
+        return "\n\nTournament name: " + self.tournamentName + "\n level " + self.level + "\n event format " + self.eventFormat + "\n event round " + self.eventRound + "\n vote " + self.vote + "\n result " + str(self.result)
+        
     # assumes vote is either 'aff' or 'neg'
     def getGendersWeighting(self, confidance_threshold) -> Union[int, None]:
         winningCount = (self.aff if self.vote == 'aff' else self.neg).getGenders(confidance_threshold)
@@ -66,8 +88,29 @@ class Round:
 
 class Judge:
     name: str
-    paradim: Dict[DateTime, str]
+    paradigm: Dict[str, Union[DateTime, str]] #{"LastUpdated": DateTime, "Paradigm": str}
     gender: Gender
     age: Age
+    url: str
     record: List[Round]
+    
+    def __init__(self, name, paradigm, gender, url) -> None:
+        self.name = name
+        self.paradigm = paradigm
+        self.gender = gender
+        self.url = url
+        
 
+class Tournament:
+    judges: List[Judge]
+    rounds: List[Round]
+    
+def getDivision(rounds: List[Round], division: str) -> List[Round]:
+    return list(filter(lambda round: round.level == division, rounds))
+
+def getFormat(rounds: List[Round], format: str) -> List[Round]:
+    return list(filter(lambda round: round.eventFormat == format, rounds))
+    
+class League:
+    tournaments: List[Tournament]
+    judges: List[Dict[str, Union[Judge, int]]] # Array<{judge: judge, frequency: integer}>
