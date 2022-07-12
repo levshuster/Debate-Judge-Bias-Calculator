@@ -1,9 +1,6 @@
-from operator import ge
 from typing import Dict, List, Union
-from unittest import result
+from unicodedata import name
 from xmlrpc.client import DateTime
-import math
-
 wordForAffermative = ['aff', 'gov']
 
 class Gender:
@@ -31,6 +28,10 @@ class Debater:
     name: str
     gender: Gender
     
+    def __init__(self, name, gender) -> None:
+        self.name = name
+        self.gender = gender  
+          
 # team is a pair or more of debaters not to be confused with a school which is a collection of teams
 class Team:
     debaters: List[Debater]

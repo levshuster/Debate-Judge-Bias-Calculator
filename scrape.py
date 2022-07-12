@@ -1,10 +1,12 @@
 from cgitb import reset
 from urllib.request import urlopen
 import re #regular expressions
-from structs import Round, Judge
+from structs import Round, Judge, Team, Debater
+from api import getGender
 import pandas as pd
 from typing import Dict, List, Union
-
+BASEURL = "https://www.tabroom.com"
+FIRST = True
 # returns a judge without a record
 def paradigmHTML2JudgeObject(html: str, url)-> Judge:
     paradimText = {"lastChanged":"", "paradigm":""}
@@ -19,22 +21,40 @@ def paradigmHTML2JudgeObject(html: str, url)-> Judge:
     paradimText["paradigm"]= re.sub("<.{0,7}>", "", html.split("ltborderbottom\">\n\t\t\t\t<p>", 1)[1])
     return Judge(name, paradimText, None, url)
 
+def getCompetetors(url:str) -> Team:
+    html = urlopen(BASEURL+url).read().decode('utf-8')
+    # print("\n\n\n", url)
+    html = re.sub("\thref   = \"(.*)\"\n\t*> ", "> \\1\t", re.sub("\t|\n", "", html))
+    names = re.search("<h4 class=\"nospace semibold\">(.*)</h4", html)
+    names = re.search(">.*<", str(names.group()) if names else "")
+    names = str(names.group()) if names else ""
+    team= Team()
+    debaters:List[Debater] = []
+
+    for name in names[1:-1].split("&amp;"):
+        debaters.append(Debater(name, getGender(name.split(" ")[0])))
+    team.debaters = debaters
+    return team
+
 def paradigmHTML2Record(html:str, judge) -> List[Round]:
     html = re.sub("\thref   = \"(.*)\"\n\t*> ", "> \\1\t", html)
     recordTable = pd.read_html(html)[0]
     # print(str(recordTable))
     rounds: List[Round] = []
+    first = True
     for row in recordTable.iterrows():
-        case = row[1]
-        aff = get(case["Aff"].split("\t")[0]
-        neg = getCompetetors(case["Neg"].split("\t")[0]
-        newRound = Round(judge, case["Tournament"], case["Lv"], case["Date"], case["Ev"], case["Rd"], aff], neg, case["Vote"], str(case["Result"]))
-        rounds.append(newRound)
-        # print(newRound)
+        if first:
+            case = row[1]
+            aff = getCompetetors(case["Aff"].split("\t")[0])
+            neg = getCompetetors(case["Neg"].split("\t")[0])
+            newRound = Round(judge, case["Tournament"], case["Lv"], case["Date"], case["Ev"], case["Rd"], aff, neg, case["Vote"], str(case["Result"]))
+            rounds.append(newRound)
+            # print(newRound)
+            first = False
     return rounds
 
 def getParadigmFromJudgeId(judgeId: int) -> Judge:
-    url = "https://www.tabroom.com/index/paradigm.mhtml?judge_person_id=" + str(judgeId)
+    url = BASEURL+"/index/paradigm.mhtml?judge_person_id=" + str(judgeId)
     with urlopen(url) as response:
         body:str = response.read().decode('utf-8')
     judge = paradigmHTML2JudgeObject(body, url)
