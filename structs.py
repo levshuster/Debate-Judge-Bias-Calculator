@@ -14,8 +14,8 @@ class Gender:
         else:
             return 0
             
-    def getGender(self, confidance_threshold:int) -> Union[None, int]:
-        return  self.weight(self.gender) if confidance_threshold <= self.confidance else None
+    def getGender(self, confidanceThreshold:int) -> Union[None, int]:
+        return  self.weight(self.gender) if confidanceThreshold <= self.confidance else None
     
     def __init__(self, gender:str="", confiance:float=0) -> None:
         self.confidance = confiance
@@ -99,10 +99,10 @@ class Round:
         return "\n\nTournament name: " + self.tournamentName + "\n level " + self.level + "\n event format " + self.eventFormat + "\n event round " + self.eventRound + "\n vote " + self.vote + "\n result " + str(self.result) + "\n\n" + str(self.aff) + "\n\n" + str(self.neg)
         
     # assumes vote is either 'aff' or 'neg'
-    def getGendersWeighting(self, confidance_threshold) -> Union[int, None]:
+    def getGendersWeighting(self, confidance_threshold) -> int:
         winningCount = (self.aff if self.vote == 'aff' else self.neg).getGenders(confidance_threshold)
         loosingCount = (self.neg if self.vote == 'aff' else self.aff).getGenders(confidance_threshold)
-        return winningCount - loosingCount if winningCount is not None and loosingCount is not None else None
+        return winningCount - loosingCount if winningCount is not None and loosingCount is not None else 0
 
 
 class Judge:
@@ -139,6 +139,6 @@ class League:
 def getCountWithinThreshold(rounds: List[Round], confidance_threshold: float) -> Dict[str, int]:
         withinThreshold = 0
         for round in rounds:
-            if round.getGendersWeighting(confidance_threshold) is not None:
+            if round.getGendersWeighting(confidance_threshold) is not 0:
                 withinThreshold += 1
         return {'total': len(rounds), 'withinThreshold': withinThreshold}

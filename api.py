@@ -16,7 +16,7 @@ cachedNames: List[Debater] = loadCache()
 def saveCache() -> None:
     store.saveNameCache(cachedNames)
     
-def getGender(name:str) -> Debater:
+async def getGender(name:str) -> Debater:
     name = name.lower()
     cachedName = getGenderFromCache(name)
     # return cachedName if cachedName else getGenderFromFreeAPI(name)
