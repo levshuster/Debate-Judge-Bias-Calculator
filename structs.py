@@ -1,10 +1,9 @@
 from typing import Dict, List, Union
-from unicodedata import name
 from xmlrpc.client import DateTime
 wordForAffermative = ['aff', 'gov']
 
 class Gender:
-    confidance: int
+    confidance: float
     gender: str #"male" | "female" | "nonbinary"
     
     def weight(self, gender: str) -> int:
@@ -16,7 +15,14 @@ class Gender:
             return 0
             
     def getGender(self, confidance_threshold:int) -> Union[None, int]:
-        return  self.weight(self.gender) if confidance_threshold <= self.confidance else None 
+        return  self.weight(self.gender) if confidance_threshold <= self.confidance else None
+    
+    def __init__(self, gender:str="", confiance:float=0) -> None:
+        self.confidance = confiance
+        self.gender = gender
+        
+    def __str__(self) -> str:
+        return self.gender+'\t'+str(self.confidance)
 
 class Age:
     confidance: int
@@ -31,7 +37,14 @@ class Debater:
     def __init__(self, name, gender) -> None:
         self.name = name
         self.gender = gender  
-          
+    
+    def __eq__(self, other): # : Union[Debater, str]
+        if isinstance(other, Debater):
+            return self.name == other.name
+        elif isinstance(other, int):
+            return other == self.name
+    def __str__(self) -> str:
+        return "name: "+self.name+"\tgender: "+str(self.gender)
 # team is a pair or more of debaters not to be confused with a school which is a collection of teams
 class Team:
     debaters: List[Debater]

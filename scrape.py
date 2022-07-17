@@ -5,8 +5,10 @@ from structs import Round, Judge, Team, Debater
 from api import getGender
 import pandas as pd
 from typing import Dict, List, Union
+
 BASEURL = "https://www.tabroom.com"
 FIRST = True
+
 # returns a judge without a record
 def paradigmHTML2JudgeObject(html: str, url)-> Judge:
     paradimText = {"lastChanged":"", "paradigm":""}
@@ -32,7 +34,7 @@ def getCompetetors(url:str) -> Team:
     debaters:List[Debater] = []
 
     for name in names[1:-1].split("&amp;"):
-        debaters.append(Debater(name, getGender(name.split(" ")[0])))
+        debaters.append(getGender(name.split(" ")[0]))
     team.debaters = debaters
     return team
 
