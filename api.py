@@ -1,24 +1,31 @@
-import json
+import json, store
 from typing import List, Union
-import urllib3
 from structs import Debater, Gender
 from urllib.request import urlopen
 
 def loadCache() -> List[Debater]:
-    print("figure out were cache will be stored")
-    return []
+    cachedNames = []
+    try:
+        cachedNames = store.loadNameCache()
+    except:
+        print("No Cache Found")
+    return cachedNames
+    
 cachedNames: List[Debater] = loadCache()
 
+def saveCache() -> None:
+    store.saveNameCache(cachedNames)
+    
 def getGender(name:str) -> Debater:
     name = name.lower()
-    print("given name is ", name)
     cachedName = getGenderFromCache(name)
-    return cachedName if cachedName else getGenderFromFreeAPI(name)
+    # return cachedName if cachedName else getGenderFromFreeAPI(name)
+    return getGenderFromFreeAPI(name)
     
 def getGenderFromFreeAPI(name:str) -> Debater:
     data = urlopen("https://api.genderize.io?"+"name[0]="+name).read()
     json_object = json.loads(data.decode('utf-8'))[0]
-    # print(JSON_object)
+    # print(json_object)
     gender = Gender(json_object["gender"], json_object["probability"])
     debater = Debater(name, gender)
     cachedNames.append(debater) # may cause issue for multithreading
@@ -29,5 +36,9 @@ def getGenderFromPremiumAPI(name:str) -> Gender:
     return gender
 
 def getGenderFromCache(name:str) -> Union[Debater, None]:
-    cacheThatMatchesName = list(filter(lambda x: name is x, cachedNames))
+    # print("looking for "+name+"\n in ")
+    # for i in cachedNames:
+    #     print(i)
+    cacheThatMatchesName = list(filter(lambda x: name == x.name, cachedNames))
+    print ("\n\n\n\nTHE MATCHING CACHE IS "+str(cacheThatMatchesName[0]) if cacheThatMatchesName else "no cache found")
     return cacheThatMatchesName[0] if cacheThatMatchesName else None
