@@ -41,17 +41,17 @@ async def getCompetetors(url:str) -> Team:
     return team
     
 async def makeRound(counter, judge, case) -> Union[Round, None]:
-    try: # catches issues with tabroom and the api
-        aff = asyncio.create_task(getCompetetors(case["Aff"].split("\t")[0]))
-        neg = asyncio.create_task(getCompetetors(case["Neg"].split("\t")[0]))
-        await asyncio.gather(aff, neg)
-        print("thread ended\n thread ended")
-        newRound = Round(judge, case["Tournament"], case["Lv"], case["Date"], case["Ev"], case["Rd"].split(" ")[0], aff, neg, case["Vote"], str(case["Result"]))
-        print(newRound)
-        print(newRound.getGendersWeighting(0.7))
-        return newRound
-    except:
-        print("error in row ", counter)
+    # try: # catches issues with tabroom and the api
+    aff = asyncio.create_task(getCompetetors(case["Aff"].split("\t")[0]))
+    neg = asyncio.create_task(getCompetetors(case["Neg"].split("\t")[0]))
+    # await asyncio.gather(aff, neg)
+    print("thread ended\n thread ended")
+    newRound: Round = Round(judge, case["Tournament"], case["Lv"], case["Date"], case["Ev"], case["Rd"].split(" ")[0], await aff, await neg, str(case["Vote"]), str(case["Result"]))
+    print(newRound)
+    print(newRound.getGendersWeighting(0.7))
+    return newRound
+    # except:
+    #     print("error in row ", counter)
 
 async def paradigmHTML2Record(html:str, judge: Judge) -> List[Round]:
     html = re.sub("\thref   = \"(.*)\"\n\t*> ", "> \\1\t", html)

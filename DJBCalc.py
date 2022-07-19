@@ -1,14 +1,20 @@
 import argparse
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence
+from analysis import printGenderBias
+from scrape import getParadigmFromJudgeId
+from store import loadJudge, saveJudge
+
+from structs import Judge
 def parseArgs(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     
     parser = argparse.ArgumentParser(description="A tool to help idenitfy bias in debate judges' records\nBy Lev Shuster\nFor Lisence and more information go to https://github.com/levshuster/Debate-Judge-Bias-Calculator")
     
     #ANALYSIS
-    
+    parser.add_argument('--threshold', '-t', type=float, default=0.7, help='the threshold for bias, default is 0.7')
+    parser.add_argument('--gender-bias', '-g', required='--threshold' in argv if argv else False, action='store_true', help='returns the number of rouds who meet the given threshold and the ration of ballots awared to men and woman')
     
     # CREATE
-    parser.add_argument('--create', type=int, help='create a new judge from a tabroom judge id')
+    parser.add_argument('--create', '-c', type=int, help='create a new judge from a tabroom judge id')
     parser.add_argument('--search', '-s', type=str, action='store', help='save a judge from their first and last name')
     
     # SAVING
@@ -28,11 +34,23 @@ def parseArgs(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument('--debug', '-d', action='store_true', help='Print debug information')
     parser.add_argument('--quiet', '-q', action='store_true', help='Print less information')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.0')
-    parser.add_argument('--config', '-c', type=str, default="config.txt", help='Load a config file')
-    args = parser.parse_args(argv)
+    parser.add_argument('--config', '-C', type=str, default="config.txt", help='Load a config file')
+    return parser.parse_args(argv)
     
 def actOn(args: argparse.Namespace) -> None:
     print(args)
+    judges: List[Judge] = []
+    if args.create:
+        judge = getParadigmFromJudgeId(args.create)
+        judges.append(judge)
+        saveJudge(judge, args.file.pop())
+    if args.load:
+        judges.append(loadJudge(args.file.pop()))
+    if args.gender_bias:
+        for judge in judges:
+            printGenderBias(judge, args.threshold)
+
+    
     
 def main(argv: Optional[Sequence[str]] = None) -> int:
     actOn(parseArgs(argv))

@@ -83,7 +83,7 @@ class Round:
         digit2:int = int(string[7])
         return {'aff':digit1, 'neg':digit2} if string.lower() in wordForAffermative else {'aff':digit2, 'neg':digit1}
 
-    def __init__(self, judge, tournamentName, level, date, eventFormat, eventRound, aff, neg, vote, result):
+    def __init__(self, judge, tournamentName, level, date, eventFormat, eventRound, aff: Team, neg: Team, vote: str, result):
         self.judge = judge
         self.tournamentName = tournamentName
         self.level = level
@@ -139,6 +139,6 @@ class League:
 def getCountWithinThreshold(rounds: List[Round], confidance_threshold: float) -> Dict[str, int]:
         withinThreshold = 0
         for round in rounds:
-            if round.getGendersWeighting(confidance_threshold) is not 0:
+            if round.getGendersWeighting(confidance_threshold) != 0:
                 withinThreshold += 1
         return {'total': len(rounds), 'withinThreshold': withinThreshold}
