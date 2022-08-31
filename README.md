@@ -70,3 +70,7 @@ Result: Debate-Judge_Bias-Caculator produces a list of judges who are most likel
 
 
 
+# Running the front end
+```bash
+steamlit run Home.py
+```
