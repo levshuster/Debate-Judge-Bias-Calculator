@@ -14,6 +14,7 @@ def loadCache() -> List[Debater]:
 cachedNames: List[Debater] = loadCache()
 
 def saveCache() -> None:
+    print("saving cache is", cachedNames)
     store.saveNameCache(cachedNames)
     
 async def getGender(name:str) -> Debater:
@@ -28,6 +29,7 @@ def getGenderFromFreeAPI(name:str) -> Debater:
     # print(json_object)
     gender = Gender(json_object["gender"], json_object["probability"])
     debater = Debater(name, gender)
+    print("API RESPONSE IS ", str(debater))
     cachedNames.append(debater) # may cause issue for multithreading
     return debater
 
@@ -40,5 +42,5 @@ def getGenderFromCache(name:str) -> Union[Debater, None]:
     # for i in cachedNames:
     #     print(i)
     cacheThatMatchesName = list(filter(lambda x: name == x.name, cachedNames))
-    print ("\n\n\n\nTHE MATCHING CACHE IS "+str(cacheThatMatchesName[0]) if cacheThatMatchesName else "no cache found")
+    print ("THE MATCHING CACHE IS "+str(cacheThatMatchesName[0]) if cacheThatMatchesName else "no cache found")
     return cacheThatMatchesName[0] if cacheThatMatchesName else None

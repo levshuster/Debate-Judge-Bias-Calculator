@@ -49,6 +49,7 @@ def actOn(args: argparse.Namespace) -> None:
     if args.gender_bias:
         for judge in judges:
             printGenderBias(judge, args.threshold)
+            # TODO figure out why this calls savejudge
 
     
     
