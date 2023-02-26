@@ -1,5 +1,7 @@
 use chrono::{DateTime};//, NaiveDate, NaiveDateTime, NaiveTime};
 
+
+
 pub struct Paradigm {
 	pub(crate) last_updated: DateTime<chrono::FixedOffset>,
 	pub(crate) text: String,
@@ -150,7 +152,9 @@ impl Judge {
 		// create a string a usfin the to_string method of each struct
 		let mut string = String::new();
 		string.push_str(&format!("\n\tName: {} ", self.name));
-		string.push_str(&format!("\n\tParadim: {} ", self.paradigm.to_string()));
+		// rewrite the line below but limit the length of tostring to 100 characters
+		string.push_str(&format!("\n\tParadim: {}...", self.paradigm.to_string().chars().take(210).collect::<String>()));
+		// string.push_str(&format!("\n\tParadim: {} ", self.paradigm.to_string()));
 		string.push_str(&format!("\n\tGender: {}", self.gender.to_string()));
 		string.push_str(&format!("\n\tAge: {}", self.age.to_string()));
 		string.push_str(&format!("\n\tURL: {}", self.url));
