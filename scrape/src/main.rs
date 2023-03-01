@@ -15,10 +15,8 @@ fn main() -> Result<(), reqwest::Error> {
 
 fn get_paradim_html_from_judge_id(judge_id: u32)-> Result<HtmlUrlPair, reqwest::Error> {
 	let url = format!("https://www.tabroom.com/index/paradigm.mhtml?judge_person_id={}", judge_id);
-	// let client = Client::new();
 	let response = Client::new().get(&url).send()?;
 	let body = response.text()?;
-	// println!("body = {:?}", body);
 	Ok(HtmlUrlPair {
 		html: body,
 		url: url,
@@ -48,23 +46,37 @@ impl HtmlUrlPair {
 
 fn get_name_from_paradim_html(html: String) -> Result<String, reqwest::Error> {
 	let name_re = Regex::new(r"<h3>(.*)</h3>").unwrap();
-	Ok(name_re.captures(&html).unwrap().get(1).unwrap().as_str().to_string())
+	Ok(name_re.captures(&html)
+		.unwrap()
+		.get(1)
+		.unwrap()
+		.as_str()
+		.to_string())
 }
 
 fn get_paradim_struct_from_paradim_html(html: String) -> Paradigm {
 	let paradim = html.split(">\n\t\t\t\t\t<h5>Paradigm Statement</h5>\n\t\t\t\t</span>\n\n\t\t\t\t<span class=\"half rightalign semibold bluetext\">\n\t\t\t\t\t\t")
-		.nth(1).unwrap()
+		.nth(1)
+		.unwrap()
 		.split("</p>\n\t\t\t</div>\n\t\t</div>\n\n\t<div")
-		.nth(0).unwrap().to_string();
+		.nth(0)
+		.unwrap()
+		.to_string();
 
 	let last_changed = paradim.split("\n")
-		.nth(0).unwrap()
+		.nth(0)
+		.unwrap()
 		.split("Last changed ")
-		.nth(1).unwrap();
+		.nth(1)
+		.unwrap();
 
 	let re = Regex::new(r"<.{0,7}>").unwrap();
-	let paradigm = re.replace_all(paradim.split("ltborderbottom\">\n\t\t\t\t<p>")
-		.nth(1).unwrap(), "").to_string();
+	let paradigm = re
+		.replace_all(paradim
+			.split("ltborderbottom\">\n\t\t\t\t<p>")
+			.nth(1)
+			.unwrap(), "")
+		.to_string();
 	
 	// TODO: the end of paradigm is a bunch of junk, so I need to remove it, perhaps one of the split statments isn't working correctly?
 	// println!("\n\n\nparadigm = {:?}", paradigm);
@@ -81,6 +93,10 @@ fn get_paradim_struct_from_paradim_html(html: String) -> Paradigm {
 }
 
 fn get_gender_from_paradim_html(html: String) -> Gender {
+	get_gender_from_name("name".to_string())
+}
+
+fn get_gender_from_name(name: String) -> Gender {
 	Gender {
 		confidance: 1.0,
 		get: GenderType::Male
@@ -88,6 +104,10 @@ fn get_gender_from_paradim_html(html: String) -> Gender {
 }
 
 fn get_age_struct_from_paradim_html(html: String) -> Age {
+	get_age_from_name("name".to_string())
+}
+
+fn get_age_from_name(name: String) -> Age {
 	Age {
 		confidance: 1.0,
 		get: 18
@@ -95,11 +115,21 @@ fn get_age_struct_from_paradim_html(html: String) -> Age {
 }
 
 fn get_record_from_paradim_html(html: String) -> Vec<Round> {
-	let round_html = "Filler Round HTML".to_string();
+	let rounds_html = html.split("<div class=\"round\">")
+		.map(|x| x.to_string())
+		.collect::<Vec<String>>();
+	
+	// make the map multithreaded
+	rounds_html.iter()
+		.map(|x| get_round_from_html(x.to_string()))
+		.collect::<Vec<Round>>()
+}
+
+fn get_round_from_html(round_html: String) -> Round {
 	let aff_url = "FIller aff url".to_string();
 	let neg_url = "Filler neg url".to_string();
 	
-	let example_round = Round {
+	Round {
 		judge: None,
 		tournament_name: "Filler Tournament".to_string(),
 		level: structs::Level::HighSchool,
@@ -110,9 +140,7 @@ fn get_record_from_paradim_html(html: String) -> Vec<Round> {
 		aff: get_team_from_html(aff_url),
 		neg: get_team_from_html(neg_url),
 		vote: get_vote_from_html(round_html.clone()),
-	};
-	
-	vec![example_round] //multithread each round
+	}
 }
 
 fn get_team_from_html(url: String) -> Team{
