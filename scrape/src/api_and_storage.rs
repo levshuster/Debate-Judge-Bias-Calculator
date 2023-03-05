@@ -2,8 +2,8 @@ use reqwest::blocking::get;
 use serde::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader};
 use serde_json::to_writer;
-
 use crate::structs::{self, GenderType};
+
 static PERSON_JSON: &str = "person.json";
 
 

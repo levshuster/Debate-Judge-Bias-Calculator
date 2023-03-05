@@ -6,6 +6,8 @@ mod api_and_storage;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
 use api_and_storage::get_gender;
 
+// Next Step: get_round_from_html()
+
 fn main() -> Result<(), reqwest::Error> {
 	println!("judge = {:}", get_paradim_html_from_judge_id(105729)?
 		.get_judge_struct()?
@@ -112,18 +114,14 @@ fn get_paradim_struct_from_paradim_html(html: String) -> Paradigm {
 	}
 }
 
-fn get_gender_from_paradim_html(html: String) -> Gender {
-	get_gender("name".to_string())
-}
-
 fn get_age_struct_from_paradim_html(html: String) -> Age {
-	get_age_from_name("name".to_string())
+	get_age_from_name(html)
 }
 
 fn get_age_from_name(name: String) -> Age {
 	Age {
-		confidance: 1.0,
-		get: 18
+		confidance: 0.0,
+		get: 0
 	}
 }
 
