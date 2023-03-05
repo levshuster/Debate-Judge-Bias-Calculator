@@ -2,19 +2,23 @@ use chrono::{DateTime, FixedOffset, TimeZone};
 use reqwest::blocking::Client;
 use regex::Regex;
 mod structs;
+mod api_and_storage;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
-
-
+use api_and_storage::get_gender;
 
 fn main() -> Result<(), reqwest::Error> {
 	println!("judge = {:}", get_paradim_html_from_judge_id(105729)?
 		.get_judge_struct()?
 		.to_string());
+
 	Ok(())
 }
 
 fn get_paradim_html_from_judge_id(judge_id: u32)-> Result<HtmlUrlPair, reqwest::Error> {
-	let url = format!("https://www.tabroom.com/index/paradigm.mhtml?judge_person_id={}", judge_id);
+	get_html_from_url(format!("https://www.tabroom.com/index/paradigm.mhtml?judge_person_id={}", judge_id))
+}
+
+fn get_html_from_url(url: String) -> Result<HtmlUrlPair, reqwest::Error> {
 	let response = Client::new().get(&url).send()?;
 	let body = response.text()?;
 	Ok(HtmlUrlPair {
@@ -29,15 +33,31 @@ pub struct HtmlUrlPair {
 }
 impl HtmlUrlPair {
 	fn get_judge_struct(&self) -> Result<Judge, reqwest::Error> {
+		let name = get_name_from_paradim_html(self.html.clone())?;
+		let name2 = name.clone();
 		let judge = Judge {
-			name: get_name_from_paradim_html(self.html.clone())?,
+			name: name,
 			paradigm: get_paradim_struct_from_paradim_html(self.html.clone()),
-			gender: get_gender_from_paradim_html(self.html.clone()),
+			gender: get_gender(name2),
 			age: get_age_struct_from_paradim_html(self.html.clone()),
 			url: self.url.clone(),
 			record: get_record_from_paradim_html(self.html.clone()),
 		};
 		Ok(judge)
+	}
+	fn get_team_struct(&self) -> Team{
+		let team_html = "Filler Team HTML".to_string();
+		let debaters = Debater{
+			name: "Lev Shuster".to_string(),
+			gender: Gender {
+				confidance: 1.0,
+				get: GenderType::Male
+			}
+		};
+		
+		Team {
+			debaters: vec![debaters]
+		}
 	}
 }
 
@@ -93,14 +113,7 @@ fn get_paradim_struct_from_paradim_html(html: String) -> Paradigm {
 }
 
 fn get_gender_from_paradim_html(html: String) -> Gender {
-	get_gender_from_name("name".to_string())
-}
-
-fn get_gender_from_name(name: String) -> Gender {
-	Gender {
-		confidance: 1.0,
-		get: GenderType::Male
-	}
+	get_gender("name".to_string())
 }
 
 fn get_age_struct_from_paradim_html(html: String) -> Age {
@@ -126,8 +139,8 @@ fn get_record_from_paradim_html(html: String) -> Vec<Round> {
 }
 
 fn get_round_from_html(round_html: String) -> Round {
-	let aff_url = "FIller aff url".to_string();
-	let neg_url = "Filler neg url".to_string();
+	let aff_url = "https://www.tabroom.com/index/paradigm.mhtml?judge_person_id=105729".to_string();
+	let neg_url = "https://www.tabroom.com/index/paradigm.mhtml?judge_person_id=105729".to_string();
 	
 	Round {
 		judge: None,
@@ -137,24 +150,9 @@ fn get_round_from_html(round_html: String) -> Round {
 		event_format: structs::EventFormat::Policy,
 		event_division: structs::EventDivision::Varsity,
 		event_round: structs::EventRound::Finals,
-		aff: get_team_from_html(aff_url),
-		neg: get_team_from_html(neg_url),
+		aff: get_html_from_url(aff_url).unwrap().get_team_struct(),
+		neg: get_html_from_url(neg_url).unwrap().get_team_struct(),
 		vote: get_vote_from_html(round_html.clone()),
-	}
-}
-
-fn get_team_from_html(url: String) -> Team{
-	let team_html = "Filler Team HTML".to_string();
-	let debaters = Debater{
-		name: "Lev Shuster".to_string(),
-		gender: Gender {
-			confidance: 1.0,
-			get: GenderType::Male
-		}
-	};
-	
-	Team {
-		debaters: vec![debaters]
 	}
 }
 
