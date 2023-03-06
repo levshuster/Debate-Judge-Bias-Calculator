@@ -134,6 +134,7 @@ pub enum VoteResult {
 	Unknown,
 }
 // a vote can be simplified to a single VoteResult, most rounds will have a single value in either aff or neg but pannel rounds could have multiple votes spread over the options
+#[derive(Default)]
 pub struct Vote {
 	pub(crate) aff: u32,
 	pub(crate) neg: u32,
@@ -204,7 +205,7 @@ impl Judge {
 		string.push_str(&format!("\n\tGender: {}", self.gender.to_string()));
 		string.push_str(&format!("\n\tAge: {}", self.age.to_string()));
 		string.push_str(&format!("\n\tURL: {}", self.url));
-		for round in &self.record {string.push_str(&format!("\n\t\t{}", round.to_string_short()));}
+		for round in &self.record {string.push_str(&format!("\n\t\t{}", round._to_string()));}
 		string
 	}
 }

@@ -1,9 +1,9 @@
-use std::{io::Write};
+use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use chrono::{FixedOffset, TimeZone, NaiveDate};
 use reqwest::blocking::Client;
-use regex::Regex;
-use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use table_extract::Row;
+use std::{io::Write};
+use regex::Regex;
 
 
 mod structs;
@@ -13,7 +13,6 @@ use api_and_storage::get_gender;
 
 // Next Step: read json names once at the start of the program, and when writing also add to internal list of names so each new name only requires on json write instead of a read, write, read for each name (also change to dict instead of vec)
 // Next Step: start parsing debaters pages
-// Next Step: get_vote_from_html
 
 fn main() -> Result<(), reqwest::Error> {
 	println!("judge = {:}", get_paradim_html_from_judge_id(105729)?
@@ -55,6 +54,58 @@ impl HtmlUrlPair {
 		Ok(judge)
 	}
 	fn get_team_struct(&self) -> Team{
+		let after = "nospace semibold";
+		let before = "full nospace martop semibold bluetext";
+		if let Some(i) = self.html.find(after) {
+			let (_, rest) = self.html.split_at(i + after.len());
+			if let Some(j) = rest.find(before) {
+				let first = String::from(&rest[..j]);
+				if let Some(start_index) = first.find('>') {
+					if let Some(end_index) = first[start_index + 1..].find('<') {
+						let extracted = &first[start_index + 1..start_index + 1 + end_index];
+						let names: Vec<&str> = extracted
+							.trim()
+							.split("&amp;")
+							.map(|name| name.trim())
+							.take(10)
+							.collect();
+						// println!("{:?}", names);
+						let debaters:Vec<Debater> = names
+							.iter()
+							.map(|name| Debater{
+								name: name.to_string(),
+								gender: get_gender(name.to_string())
+						})
+						.collect();
+						return Team {
+							debaters: debaters
+						}
+					}
+				}
+			}
+		}
+			// let after = "nospace semibold";
+			// let before = "full nospace martop semibold bluetext";
+			// if let Some(i) = self.html.find(after) {
+			// 	let (_, rest) = self.html.split_at(i + after.len());
+			// 	if let Some(j) = rest.find(before) {
+			// 		let first = String::from(&rest[..j]);
+			// 		match (first.find('>').map(|i| i + 1), first.rfind('<')) {
+			// 			(Some(start_index), Some(end_index)) => {
+			// 				let extracted = &first[start_index..end_index];
+			// 				let names: Vec<&str> = extracted
+			// 					.trim()
+			// 					.split("&amp;")
+			// 					.map(|name| name.trim())
+			// 					.take(10)
+			// 					.collect();
+			// 				println!("{:?}", names);
+			// 			}
+			// 			_ => {}
+			// 		}
+			// 	}
+			// }
+		// println!("html is {:?}", self.html);
 		let team_html = "Filler Team HTML".to_string();
 		let debaters = Debater{
 			name: "Lev Shuster".to_string(),
@@ -194,8 +245,8 @@ fn get_round_from_row(row: Row) -> Round {
 			.get_team_struct())
 		.collect::<Vec<Team>>();
 	
-	print!("-------working on round {} round {}-------\r", tournament_name, round);
-	std::io::stdout().flush().unwrap(); // flush the output to ensure it's printed immediately
+	// print!("-------working on round {} round {}-------\r", tournament_name, round);
+	// std::io::stdout().flush().unwrap(); // flush the output to ensure it's printed immediately
 	
 	Round {
 		judge: None,
@@ -207,15 +258,33 @@ fn get_round_from_row(row: Row) -> Round {
 		event_round: structs::EventRound::match_string(round),
 		aff: teams[0].clone(),
 		neg: teams[1].clone(),
-		vote: get_vote_from_html(vote.to_string()),
+		vote: get_vote_from_html(vote.to_string(), result.to_string()),
 	}
 }
 
-fn get_vote_from_html(html: String) -> structs::Vote {
+fn get_vote_from_html(vote: String, result: String) -> structs::Vote {
+	if result == "" {
+		return match vote.as_str() {
+			"Aff" => structs::Vote { aff: 1, ..Default::default() },
+			"Neg" => structs::Vote { neg: 1, ..Default::default() },
+			_ => structs::Vote { unknown: 1, ..Default::default() }
+		}
+	}
+	
+	let binding = result.chars().rev().collect::<String>();
 	structs::Vote {
-		aff: 1,
-		neg: 0,
-		tie: 0,
-		unknown: 0,
+		aff: binding
+			.chars()
+			.nth(2)
+			.unwrap()
+			.to_digit(10)
+			.unwrap(),
+		neg: binding
+			.chars()
+			.nth(0)
+			.unwrap()
+			.to_digit(10)
+			.unwrap(),
+		..Default::default()
 	}
 }
