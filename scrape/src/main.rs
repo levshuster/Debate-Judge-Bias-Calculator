@@ -1,10 +1,13 @@
-use chrono::{DateTime, FixedOffset, TimeZone};
+use std::{io::Write};
+
+use chrono::{FixedOffset, TimeZone, NaiveDate};
 use reqwest::blocking::Client;
 use regex::Regex;
 mod structs;
 mod api_and_storage;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
 use api_and_storage::get_gender;
+use table_extract::Row;
 
 // Next Step: get_round_from_html()
 
@@ -17,15 +20,15 @@ fn main() -> Result<(), reqwest::Error> {
 }
 
 fn get_paradim_html_from_judge_id(judge_id: u32)-> Result<HtmlUrlPair, reqwest::Error> {
-	get_html_from_url(format!("https://www.tabroom.com/index/paradigm.mhtml?judge_person_id={}", judge_id))
+	get_html_from_url(&format!("https://www.tabroom.com/index/paradigm.mhtml?judge_person_id={}", judge_id))
 }
 
-fn get_html_from_url(url: String) -> Result<HtmlUrlPair, reqwest::Error> {
-	let response = Client::new().get(&url).send()?;
+fn get_html_from_url(url: &str) -> Result<HtmlUrlPair, reqwest::Error> {
+	let response = Client::new().get(url).send()?;
 	let body = response.text()?;
 	Ok(HtmlUrlPair {
 		html: body,
-		url: url,
+		url: url.to_string(),
 	})
 }
 
@@ -126,31 +129,75 @@ fn get_age_from_name(name: String) -> Age {
 }
 
 fn get_record_from_paradim_html(html: String) -> Vec<Round> {
-	let rounds_html = html.split("<div class=\"round\">")
-		.map(|x| x.to_string())
-		.collect::<Vec<String>>();
-	
 	// make the map multithreaded
-	rounds_html.iter()
-		.map(|x| get_round_from_html(x.to_string()))
+	table_extract::Table::find_first(&html)
+		.unwrap()
+		.iter()
+		.map(|row| get_round_from_row(row))
 		.collect::<Vec<Round>>()
 }
 
-fn get_round_from_html(round_html: String) -> Round {
-	let aff_url = "https://www.tabroom.com/index/paradigm.mhtml?judge_person_id=105729".to_string();
-	let neg_url = "https://www.tabroom.com/index/paradigm.mhtml?judge_person_id=105729".to_string();
+fn get_round_from_row(row: Row) -> Round {
+	
+	let level = row.get("Lv").unwrap_or("Unknown Level");
+	let event_format = row.get("Ev").unwrap_or("Unknown Event");
+	let vote = row.get("Vote").unwrap_or("Unknown Vote");
+	let result = row.get("Result").unwrap_or("Unknown Result");	
+
+	let tournament = row.get("Tournament").unwrap_or("Unknown Tournament");
+	let tournament_name = Regex::new(r#"<.*?>(.*?)</.*?>"#)
+		.unwrap()
+		.captures(tournament)
+		.unwrap()
+		.get(1)
+		.unwrap()
+		.as_str();
+
+	let date_str = row.get("Date").unwrap_or("Unknown Date");
+	let date = Regex::new(r"\d{4}-\d{2}-\d{2}")
+		.unwrap()
+		.captures(date_str)
+		.unwrap()
+		.get(0)
+		.unwrap()
+		.as_str();
+	
+	let event_round = row.get("Rd").unwrap_or("Unknown Round");
+	let round = Regex::new(r#"<a.*?>(.*?)</a>"#)
+		.unwrap()
+		.captures(event_round)
+		.unwrap()
+		.get(1)
+		.unwrap()
+		.as_str()
+		.trim();
+	
+	let team = [row.get("Aff").unwrap_or("Unknown Aff"), row.get("Neg").unwrap_or("Unknown Neg")];
+	let urls: Vec<_> = team
+		.iter()
+		.map(|s| "https://www.tabroom.com".to_string() + Regex::new(r#"href="([^"]+)""#)
+			.unwrap()
+			.captures(s)
+			.unwrap()
+			.get(1)
+			.unwrap()
+			.as_str())
+		.collect();
+	
+	print!("-------working on round {} round {}-------\r", tournament_name, round);
+	std::io::stdout().flush().unwrap(); // flush the output to ensure it's printed immediately
 	
 	Round {
 		judge: None,
-		tournament_name: "Filler Tournament".to_string(),
-		level: structs::Level::HighSchool,
-		date: DateTime::parse_from_rfc3339("2020-01-01T00:00:00Z").unwrap(),
-		event_format: structs::EventFormat::Policy,
-		event_division: structs::EventDivision::Varsity,
-		event_round: structs::EventRound::Finals,
-		aff: get_html_from_url(aff_url).unwrap().get_team_struct(),
-		neg: get_html_from_url(neg_url).unwrap().get_team_struct(),
-		vote: get_vote_from_html(round_html.clone()),
+		tournament_name: tournament_name.to_string(),
+		level: structs::Level::match_string(level),
+		date: NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap(),
+		event_format: structs::EventFormat::Unknown,
+		event_division: structs::EventDivision::match_string(event_format),
+		event_round: structs::EventRound::match_string(round),
+		aff: get_html_from_url(&urls[0]).unwrap().get_team_struct(),
+		neg: get_html_from_url(&urls[1]).unwrap().get_team_struct(),
+		vote: get_vote_from_html(vote.to_string()),
 	}
 }
 

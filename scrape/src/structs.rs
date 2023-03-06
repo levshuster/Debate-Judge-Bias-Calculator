@@ -1,4 +1,4 @@
-use chrono::{DateTime};//, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{DateTime, NaiveDate};//, NaiveDate, NaiveDateTime, NaiveTime};
 
 pub struct Paradigm {
 	pub(crate) last_updated: DateTime<chrono::FixedOffset>,
@@ -44,14 +44,25 @@ pub enum Level {
 	MiddleSchool,
 	College,
 }
+impl Level {
+	pub(crate) fn match_string(string: &str) -> Level {
+		match string {
+			"HS" => Level::HighSchool,
+			"MS" => Level::MiddleSchool,
+			"C" => Level::College,
+			_ => panic!("Invalid level: {}", string),
+		}
+	}
+}
 
 #[derive(Debug)]
 pub enum EventFormat {
-	Policy,
-	LincolnDouglas,
-	PublicForum,
+	_Policy,
+	_LincolnDouglas,
+	_PublicForum,
 	Unknown,
 }
+
 
 #[derive(Debug)]
 pub enum EventDivision {
@@ -59,6 +70,17 @@ pub enum EventDivision {
 	JuniorVarsity,
 	Novice,
 	Unknown,
+}
+impl EventDivision {
+	pub(crate) fn match_string(string: &str) -> EventDivision {
+		match string {
+			"Varsity" => EventDivision::Varsity,
+			"V" => EventDivision::Varsity,
+			"JV" => EventDivision::JuniorVarsity,
+			s if s.contains("Nov") => EventDivision::Novice,
+			_ => EventDivision::Unknown,
+		}
+	}
 }
 
 #[derive(Debug)]
@@ -69,6 +91,26 @@ pub enum EventRound {
 	Semifinals,
 	Finals,
 	Unknown,
+}
+
+impl EventRound {
+	pub(crate) fn match_string(string: &str) -> EventRound {
+		match string {
+			"Octas" => EventRound::Octofinals,
+			"Quarterfinals" => EventRound::Quarterfinals,
+			"Semifinals" => EventRound::Semifinals,
+			"Finals" => EventRound::Finals,
+			_ => {
+				if string.contains("R") {
+					let num_str = &string[1..];
+					let num = num_str.parse::<u32>().unwrap();
+					EventRound::Custom(num)
+				} else {
+					EventRound::Unknown
+				}
+			},
+		}
+	}
 }
 
 pub struct Team {
@@ -102,7 +144,7 @@ pub struct Round {
 	pub(crate) judge: Option<Judge>,
 	pub(crate) tournament_name: String,
 	pub(crate) level: Level,
-	pub(crate) date: DateTime<chrono::FixedOffset>,
+	pub(crate) date: NaiveDate,
 	pub(crate) event_format: EventFormat,
 	pub(crate) event_division: EventDivision,
 	pub(crate) event_round: EventRound,
@@ -111,7 +153,7 @@ pub struct Round {
 	pub(crate) vote: Vote,
 }
 impl Round {
-	fn to_string(&self) -> String {
+	fn _to_string(&self) -> String {
 		let mut string = String::new();
 		string.push_str(&format!("\tTournament Name: {}", self.tournament_name));
 		string.push_str(&format!("\tLevel: {:?}", self.level));
@@ -128,6 +170,16 @@ impl Round {
 		string.push_str(&format!("\t\tNeg: {}", self.vote.neg));
 		string.push_str(&format!("\t\tTie: {}", self.vote.tie));
 		string.push_str(&format!("\t\tUnknown: {}", self.vote.unknown));
+		string
+	}
+	fn to_string_short(&self) -> String {
+		let mut string = String::new();
+		string.push_str(&format!("\t{}", self.tournament_name));
+		string.push_str(&format!("\t{:?}", self.level));
+		string.push_str(&format!("\t{}", self.date));
+		string.push_str(&format!("\t{:?}", self.event_format));
+		string.push_str(&format!("\t{:?}", self.event_division));
+		string.push_str(&format!("\t{:?}", self.event_round));
 		string
 	}
 }
@@ -149,7 +201,7 @@ impl Judge {
 		string.push_str(&format!("\n\tGender: {}", self.gender.to_string()));
 		string.push_str(&format!("\n\tAge: {}", self.age.to_string()));
 		string.push_str(&format!("\n\tURL: {}", self.url));
-		for round in &self.record {string.push_str(&format!("\n\t\t{}", round.to_string()));}
+		for round in &self.record {string.push_str(&format!("\n\t\t{}", round.to_string_short()));}
 		string
 	}
 }
