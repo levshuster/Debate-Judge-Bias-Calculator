@@ -1,15 +1,19 @@
 use std::{io::Write};
-
 use chrono::{FixedOffset, TimeZone, NaiveDate};
 use reqwest::blocking::Client;
 use regex::Regex;
-mod structs;
-mod api_and_storage;
-use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
-use api_and_storage::get_gender;
+use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use table_extract::Row;
 
-// Next Step: get_round_from_html()
+
+mod structs;
+use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
+mod api_and_storage;
+use api_and_storage::get_gender;
+
+// Next Step: read json names once at the start of the program, and when writing also add to internal list of names so each new name only requires on json write instead of a read, write, read for each name (also change to dict instead of vec)
+// Next Step: start parsing debaters pages
+// Next Step: get_vote_from_html
 
 fn main() -> Result<(), reqwest::Error> {
 	println!("judge = {:}", get_paradim_html_from_judge_id(105729)?
@@ -133,7 +137,9 @@ fn get_record_from_paradim_html(html: String) -> Vec<Round> {
 	table_extract::Table::find_first(&html)
 		.unwrap()
 		.iter()
-		.map(|row| get_round_from_row(row))
+		.collect::<Vec<_>>()
+        .par_iter()
+		.map(|row| get_round_from_row(*row))
 		.collect::<Vec<Round>>()
 }
 
@@ -173,8 +179,8 @@ fn get_round_from_row(row: Row) -> Round {
 		.trim();
 	
 	let team = [row.get("Aff").unwrap_or("Unknown Aff"), row.get("Neg").unwrap_or("Unknown Neg")];
-	let urls: Vec<_> = team
-		.iter()
+	let teams = team
+		.par_iter()
 		.map(|s| "https://www.tabroom.com".to_string() + Regex::new(r#"href="([^"]+)""#)
 			.unwrap()
 			.captures(s)
@@ -182,7 +188,11 @@ fn get_round_from_row(row: Row) -> Round {
 			.get(1)
 			.unwrap()
 			.as_str())
-		.collect();
+		.map(|url| 
+			get_html_from_url(&url)
+			.unwrap()
+			.get_team_struct())
+		.collect::<Vec<Team>>();
 	
 	print!("-------working on round {} round {}-------\r", tournament_name, round);
 	std::io::stdout().flush().unwrap(); // flush the output to ensure it's printed immediately
@@ -195,8 +205,8 @@ fn get_round_from_row(row: Row) -> Round {
 		event_format: structs::EventFormat::Unknown,
 		event_division: structs::EventDivision::match_string(event_format),
 		event_round: structs::EventRound::match_string(round),
-		aff: get_html_from_url(&urls[0]).unwrap().get_team_struct(),
-		neg: get_html_from_url(&urls[1]).unwrap().get_team_struct(),
+		aff: teams[0].clone(),
+		neg: teams[1].clone(),
 		vote: get_vote_from_html(vote.to_string()),
 	}
 }

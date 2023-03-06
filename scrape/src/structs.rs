@@ -10,7 +10,7 @@ impl Paradigm {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum GenderType {
 	Male,
 	Female,
@@ -18,6 +18,7 @@ pub enum GenderType {
 	Unknown,
 }
 // create a Gender type with a confidance float and a get which is an enum of "male, female, nonbinary, unknow  
+#[derive(Clone)]
 pub struct Gender {
 	pub(crate) confidance: f32,
 	pub(crate) get: GenderType,
@@ -113,10 +114,12 @@ impl EventRound {
 	}
 }
 
+#[derive(Clone)]
 pub struct Team {
 	pub(crate) debaters: Vec<Debater>,
 }
 
+#[derive(Clone)]
 pub struct Debater {
 	pub(crate) name: String,
 	// school: String,
