@@ -9,11 +9,16 @@ use regex::Regex;
 mod structs;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
 mod api_and_storage;
-// use api_and_storage::get_gender;
 mod dict_thread_safe_api_and_storage;
 
-// Next Step: read json names once at the start of the program, and when writing also add to internal list of names so each new name only requires on json write instead of a read, write, read for each name (also change to dict instead of vec)
-// Next Step: start parsing debaters pages
+// Next Step: clean code, test on more judges to catch errors and edge cases/exspand enum options
+// save judge struts to a file so multiple can be compaired and data can be interpreted by a stats file
+
+// start stats file
+// write a function that will graph the confidance range to help pick a threshold
+// write a function to caculate the judge score based on number for and against women
+// write a function that will give the p value of the judge gender voting history
+
 
 fn main() -> Result<(), reqwest::Error> {
 	let lev = 105729;
@@ -80,10 +85,6 @@ impl HtmlUrlPair {
 							.map(|name| Debater{
 								name: name.to_string(),
 								gender: names_dict.get(name.to_string())
-								// gender: Gender {
-								// 	confidance: 1.0,
-								// 	get: GenderType::Male
-								// }
 						})
 						.collect();
 						return Team {
@@ -93,29 +94,6 @@ impl HtmlUrlPair {
 				}
 			}
 		}
-			// let after = "nospace semibold";
-			// let before = "full nospace martop semibold bluetext";
-			// if let Some(i) = self.html.find(after) {
-			// 	let (_, rest) = self.html.split_at(i + after.len());
-			// 	if let Some(j) = rest.find(before) {
-			// 		let first = String::from(&rest[..j]);
-			// 		match (first.find('>').map(|i| i + 1), first.rfind('<')) {
-			// 			(Some(start_index), Some(end_index)) => {
-			// 				let extracted = &first[start_index..end_index];
-			// 				let names: Vec<&str> = extracted
-			// 					.trim()
-			// 					.split("&amp;")
-			// 					.map(|name| name.trim())
-			// 					.take(10)
-			// 					.collect();
-			// 				println!("{:?}", names);
-			// 			}
-			// 			_ => {}
-			// 		}
-			// 	}
-			// }
-		// println!("html is {:?}", self.html);
-		let team_html = "Filler Team HTML".to_string();
 		let debaters = Debater{
 			name: "Lev Shuster".to_string(),
 			gender: Gender {
@@ -193,12 +171,11 @@ fn get_age_from_name(name: String) -> Age {
 }
 
 fn get_record_from_paradim_html(html: String, names: &GetGender) -> Vec<Round> {
-	// make the map multithreaded
 	table_extract::Table::find_first(&html)
 		.unwrap()
 		.iter()
 		.collect::<Vec<_>>()
-        .par_iter()
+		.par_iter()
 		.map(|row| get_round_from_row(*row, names))
 		.collect::<Vec<Round>>()
 }

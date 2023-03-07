@@ -7,9 +7,6 @@ use crate::structs::{self, GenderType};
 use std::sync::{Arc, RwLock};
 
 static PERSON_JSON: &str = "person_dict.json";
-
-// #[derive(Clone, Copy)]
-
 struct ThreadSafeDict<K, V> {
 	dict: Arc<RwLock<HashMap<K, V>>>,
 }
@@ -42,19 +39,6 @@ impl<K: Eq + std::hash::Hash + Clone, V: Clone> ThreadSafeDict<K, V> {
 	}
 	
 }
-
-// let dict = ThreadSafeDict::new();
-
-// // Insert a key-value pair
-// dict.insert("key".to_string(), "value".to_string());
-
-// // Get a value by key
-// let value = dict.get(&"key".to_string());
-// assert_eq!(value, Some("value".to_string()));
-
-// // Remove a key-value pair
-// dict.remove(&"key".to_string());
-// #[derive(Clone)]
 
 pub(crate) struct GetGender {
 	dict: ThreadSafeDict<String, Gender>,
@@ -117,7 +101,6 @@ fn get_gender(name:String, existing_names: &ThreadSafeDict<String, Gender>) -> s
 }
 
 fn get_gender_to_local_type(name: String, existing_names:&ThreadSafeDict<String, Gender>)-> Option<Gender> {
-	// let mut existing_names = read_from_json_file();
 	let gender = existing_names.get(&name);
 	if let Some(g) = gender {
 		// println!("Found a match: {:?}\n", g);
@@ -126,7 +109,6 @@ fn get_gender_to_local_type(name: String, existing_names:&ThreadSafeDict<String,
 		let new_name = get_genders_with_api(&name);
 		// println!("Got a new name: {:?}\n", new_name);
 		existing_names.insert(name.clone(), new_name.clone());
-		// write_to_json_file(&existing_names);
 		return Some(new_name);
 	}
 }
