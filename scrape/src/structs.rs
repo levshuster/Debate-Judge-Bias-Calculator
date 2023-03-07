@@ -157,18 +157,18 @@ pub struct Round {
 	pub(crate) vote: Vote,
 }
 impl Round {
-	fn _to_string(&self) -> String {
+	fn to_string(&self) -> String {
 		let mut string = String::new();
-		string.push_str(&format!("\tTournament Name: {}", self.tournament_name));
+		string.push_str(&format!("Tournament Name: {}", self.tournament_name));
 		string.push_str(&format!("\tLevel: {:?}", self.level));
 		string.push_str(&format!("\tDate: {}", self.date));
 		string.push_str(&format!("\tEvent Format: {:?}", self.event_format));
 		string.push_str(&format!("\tEvent Division: {:?}", self.event_division));
 		string.push_str(&format!("\tEvent Round: {:?}", self.event_round));
-		string.push_str(&format!("\tAff:"));
-		for debater in &self.aff.debaters {string.push_str(&format!("\n\t\t{}", debater.name));}
-		string.push_str(&format!("\tNeg:"));
-		for debater in &self.neg.debaters {string.push_str(&format!("\n\t\t{}", debater.name));}
+		string.push_str(&format!("\n\tAff:"));
+		for debater in &self.aff.debaters {string.push_str(&format!("\n\t\t{}-{}", debater.name, debater.gender.to_string()));}
+		string.push_str(&format!("\n\tNeg:"));
+		for debater in &self.neg.debaters {string.push_str(&format!("\n\t\t{}-{}", debater.name, debater.gender.to_string()));}
 		string.push_str(&format!("\tVote:"));
 		string.push_str(&format!("\t\tAff: {}", self.vote.aff));
 		string.push_str(&format!("\t\tNeg: {}", self.vote.neg));
@@ -205,7 +205,7 @@ impl Judge {
 		string.push_str(&format!("\n\tGender: {}", self.gender.to_string()));
 		string.push_str(&format!("\n\tAge: {}", self.age.to_string()));
 		string.push_str(&format!("\n\tURL: {}", self.url));
-		for round in &self.record {string.push_str(&format!("\n\t\t{}", round._to_string()));}
+		for round in &self.record {string.push_str(&format!("\n{}", round.to_string()));}
 		string
 	}
 }

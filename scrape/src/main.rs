@@ -1,23 +1,28 @@
+use dict_thread_safe_api_and_storage::GetGender;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
-use chrono::{FixedOffset, TimeZone, NaiveDate};
+use chrono::{FixedOffset, TimeZone, NaiveDate, Utc};
 use reqwest::blocking::Client;
 use table_extract::Row;
-use std::{io::Write};
 use regex::Regex;
 
 
 mod structs;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
 mod api_and_storage;
-use api_and_storage::get_gender;
+// use api_and_storage::get_gender;
+mod dict_thread_safe_api_and_storage;
 
 // Next Step: read json names once at the start of the program, and when writing also add to internal list of names so each new name only requires on json write instead of a read, write, read for each name (also change to dict instead of vec)
 // Next Step: start parsing debaters pages
 
 fn main() -> Result<(), reqwest::Error> {
-	println!("judge = {:}", get_paradim_html_from_judge_id(105729)?
-		.get_judge_struct()?
+	let lev = 105729;
+	let laura = 26867;
+	let names = dict_thread_safe_api_and_storage::GetGender::new();
+	println!("judge = {:}", get_paradim_html_from_judge_id(laura)?
+		.get_judge_struct(&names)?
 		.to_string());
+	names.close();
 
 	Ok(())
 }
@@ -40,20 +45,20 @@ pub struct HtmlUrlPair {
 	pub(crate) url: String,
 }
 impl HtmlUrlPair {
-	fn get_judge_struct(&self) -> Result<Judge, reqwest::Error> {
+	fn get_judge_struct(&self, names:&GetGender) -> Result<Judge, reqwest::Error> {
 		let name = get_name_from_paradim_html(self.html.clone())?;
 		let name2 = name.clone();
 		let judge = Judge {
 			name: name,
 			paradigm: get_paradim_struct_from_paradim_html(self.html.clone()),
-			gender: get_gender(name2),
+			gender: names.get(name2),
 			age: get_age_struct_from_paradim_html(self.html.clone()),
 			url: self.url.clone(),
-			record: get_record_from_paradim_html(self.html.clone()),
+			record: get_record_from_paradim_html(self.html.clone(), names),
 		};
 		Ok(judge)
 	}
-	fn get_team_struct(&self) -> Team{
+	fn get_team_struct(&self, names_dict: &GetGender) -> Team{
 		let after = "nospace semibold";
 		let before = "full nospace martop semibold bluetext";
 		if let Some(i) = self.html.find(after) {
@@ -74,7 +79,11 @@ impl HtmlUrlPair {
 							.iter()
 							.map(|name| Debater{
 								name: name.to_string(),
-								gender: get_gender(name.to_string())
+								gender: names_dict.get(name.to_string())
+								// gender: Gender {
+								// 	confidance: 1.0,
+								// 	get: GenderType::Male
+								// }
 						})
 						.collect();
 						return Team {
@@ -137,7 +146,7 @@ fn get_name_from_paradim_html(html: String) -> Result<String, reqwest::Error> {
 fn get_paradim_struct_from_paradim_html(html: String) -> Paradigm {
 	let paradim = html.split(">\n\t\t\t\t\t<h5>Paradigm Statement</h5>\n\t\t\t\t</span>\n\n\t\t\t\t<span class=\"half rightalign semibold bluetext\">\n\t\t\t\t\t\t")
 		.nth(1)
-		.unwrap()
+		.unwrap_or("No Paradigm Statement Found")
 		.split("</p>\n\t\t\t</div>\n\t\t</div>\n\n\t<div")
 		.nth(0)
 		.unwrap()
@@ -148,14 +157,14 @@ fn get_paradim_struct_from_paradim_html(html: String) -> Paradigm {
 		.unwrap()
 		.split("Last changed ")
 		.nth(1)
-		.unwrap();
+		.unwrap_or("16 October 2021 3:32 AM PST");
 
 	let re = Regex::new(r"<.{0,7}>").unwrap();
 	let paradigm = re
 		.replace_all(paradim
 			.split("ltborderbottom\">\n\t\t\t\t<p>")
 			.nth(1)
-			.unwrap(), "")
+			.unwrap_or("no paradim"), "")
 		.to_string();
 	
 	// TODO: the end of paradigm is a bunch of junk, so I need to remove it, perhaps one of the split statments isn't working correctly?
@@ -183,18 +192,18 @@ fn get_age_from_name(name: String) -> Age {
 	}
 }
 
-fn get_record_from_paradim_html(html: String) -> Vec<Round> {
+fn get_record_from_paradim_html(html: String, names: &GetGender) -> Vec<Round> {
 	// make the map multithreaded
 	table_extract::Table::find_first(&html)
 		.unwrap()
 		.iter()
 		.collect::<Vec<_>>()
         .par_iter()
-		.map(|row| get_round_from_row(*row))
+		.map(|row| get_round_from_row(*row, names))
 		.collect::<Vec<Round>>()
 }
 
-fn get_round_from_row(row: Row) -> Round {
+fn get_round_from_row(row: Row, names: &GetGender) -> Round {
 	
 	let level = row.get("Lv").unwrap_or("Unknown Level");
 	let event_format = row.get("Ev").unwrap_or("Unknown Event");
@@ -242,7 +251,7 @@ fn get_round_from_row(row: Row) -> Round {
 		.map(|url| 
 			get_html_from_url(&url)
 			.unwrap()
-			.get_team_struct())
+			.get_team_struct(names))
 		.collect::<Vec<Team>>();
 	
 	// print!("-------working on round {} round {}-------\r", tournament_name, round);

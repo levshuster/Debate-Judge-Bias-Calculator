@@ -7,49 +7,6 @@ use crate::structs::{self, GenderType};
 static PERSON_JSON: &str = "person.json";
 // TODO: Turn into dict, have setup that just reads once then returns an object that holds the two Rwlocks, have an close function that writes to file,   RwLock::new( on the dict so it can by read by many threads at once, but only written to by one thread at a time
 
-use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
-
-struct ThreadSafeDict<K, V> {
-	dict: Arc<RwLock<HashMap<K, V>>>,
-}
-
-impl<K: Eq + std::hash::Hash + Clone, V: Clone> ThreadSafeDict<K, V> {
-	fn new() -> Self {
-		Self {
-			dict: Arc::new(RwLock::new(HashMap::new())),
-		}
-	}
-
-	fn insert(&self, key: K, value: V) {
-		let mut dict = self.dict.write().unwrap();
-		dict.insert(key, value);
-	}
-
-	fn remove(&self, key: &K) {
-		let mut dict = self.dict.write().unwrap();
-		dict.remove(key);
-	}
-
-	fn get(&self, key: &K) -> Option<V> {
-		let dict = self.dict.read().unwrap();
-		dict.get(key).cloned()
-	}
-}
-
-// let dict = ThreadSafeDict::new();
-
-// // Insert a key-value pair
-// dict.insert("key".to_string(), "value".to_string());
-
-// // Get a value by key
-// let value = dict.get(&"key".to_string());
-// assert_eq!(value, Some("value".to_string()));
-
-// // Remove a key-value pair
-// dict.remove(&"key".to_string());
-
-
 
 
 
