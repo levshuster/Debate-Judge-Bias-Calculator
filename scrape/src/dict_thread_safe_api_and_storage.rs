@@ -22,7 +22,7 @@ impl<K: Eq + std::hash::Hash + Clone, V: Clone> ThreadSafeDict<K, V> {
 		dict.insert(key, value);
 	}
 
-	fn remove(&self, key: &K) {
+	fn _remove(&self, key: &K) {
 		let mut dict = self.dict.write().unwrap();
 		dict.remove(key);
 	}
@@ -54,8 +54,14 @@ impl GetGender {
 	pub(crate) fn close(&self){
 		write_to_json_file(&self.dict, self.api_call_count);
 	}
-	pub(crate) fn get(&self, name: String)-> structs::Gender {
-		get_gender(name, &self.dict)
+	pub(crate) fn get(&self, name: String) -> structs::Gender {
+		match get_gender(name, &self.dict){
+			Some(gender) => gender,
+			None => structs::Gender{
+				confidance: 0.0, 
+				get: GenderType::Unknown
+			}
+		}
 	}
 }
 
@@ -66,19 +72,30 @@ struct Gender {
 	probability: f32,
 }
 
-fn get_genders_with_api(name: &str) -> Gender {
+fn get_genders_with_api(name: &str) -> Option<Gender> {
 	let api_url = format!("https://api.genderize.io?&name[1]={}", name);
-	get(&api_url)
+	let response = get(&api_url)
 		.unwrap()
-		.json::<Vec<Gender>>()
-		.unwrap()[0]
-		.clone()
+		.json::<Vec<Gender>>();
+	match response {
+		Ok(response) => Some(response[0].clone()),
+		Err(_) => None,
+	}
 }
 
-fn get_gender(name:String, existing_names: &ThreadSafeDict<String, Gender>) -> structs::Gender {
-	let first_name = name.split_whitespace().next().unwrap().to_string();
-	let local = get_gender_to_local_type(first_name, existing_names).unwrap();
+fn get_gender(name:String, existing_names: &ThreadSafeDict<String, Gender>) -> Option<structs::Gender> {
+	// let first_name_option = name.split_whitespace().next();
+	// if first_name_option.is_none() {
+	// 	return None;
+	// }
+	// let first_name = first_name_option
+	// 	.unwrap()
+	// 	.to_string();
+	
+	// let local = get_gender_to_local_type(first_name, existing_names).unwrap();
 
+	let first_name = name.split_whitespace().next()?.to_string();
+    let local = get_gender_to_local_type(first_name, existing_names)?;
 	let binding = "unknown".to_string();
 	let gender = local.gender
 		.as_ref()
@@ -93,10 +110,10 @@ fn get_gender(name:String, existing_names: &ThreadSafeDict<String, Gender>) -> s
 		_ => panic!("Invalid gender type: {:?}", local), // handle invalid input
 	};
 
-	structs::Gender {
+	Some(structs::Gender {
 		confidance: local.probability, 
 		get: gender_type
-	}
+	})
 }
 
 fn get_gender_to_local_type(name: String, existing_names:&ThreadSafeDict<String, Gender>)-> Option<Gender> {
@@ -104,12 +121,15 @@ fn get_gender_to_local_type(name: String, existing_names:&ThreadSafeDict<String,
 	if let Some(g) = gender {
 		// println!("Found a match: {:?}\n", g);
 		return Some(g.clone());
-	} else {
-		let new_name = get_genders_with_api(&name);
-		// println!("Got a new name: {:?}\n", new_name);
-		existing_names.insert(name.clone(), new_name.clone());
-		return Some(new_name);
 	}
+	let new_name = get_genders_with_api(&name);
+	if new_name.is_none() {
+		return None;
+	}
+	let result = new_name.unwrap();
+	// println!("Got a new name: {:?}\n", new_name);
+	existing_names.insert(name.clone(), result.clone());
+	return Some(result);
 }
 
 fn write_to_json_file(names: &ThreadSafeDict<String, Gender>, api_call_count: u32) {
