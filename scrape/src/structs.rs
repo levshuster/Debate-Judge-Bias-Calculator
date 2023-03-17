@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use chrono::{DateTime, NaiveDate};//, NaiveDate, NaiveDateTime, NaiveTime};
 
 pub struct Paradigm {
@@ -208,4 +210,15 @@ impl Judge {
 		for round in &self.record {string.push_str(&format!("\n{}", round.to_string()));}
 		string
 	}
+	// fn write_to_json_file(&self) {
+	// 	let mut file = File::create(format!("{}_judge.json", self.name)).unwrap();
+	// 	file.write_all(self.to_string().as_bytes()).unwrap();
+	// }
+	// fn read_from_json_file(name: &str) -> Judge {
+	// 	let mut file = File::open(format!("{}_judge.json", name)).unwrap();
+	// 	let mut contents = String::new();
+	// 	file.read_to_string(&mut contents).unwrap();
+	// 	let judge: Judge = serde_json::from_str(&contents).unwrap();
+	// 	judge
+	// }
 }

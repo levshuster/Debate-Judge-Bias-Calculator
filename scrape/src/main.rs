@@ -7,6 +7,7 @@ use regex::Regex;
 
 
 mod structs;
+mod search_for_judge;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
 mod api_and_storage;
 mod dict_thread_safe_api_and_storage;
@@ -21,14 +22,18 @@ mod dict_thread_safe_api_and_storage;
 
 
 fn main() -> Result<(), reqwest::Error> {
-	let lev = 105729;
-	let laura = 26867;
+	// let lev = 105729;
+	// let laura = 26867;
 	let names = dict_thread_safe_api_and_storage::GetGender::new();
-	println!("judge = {:}", get_paradim_html_from_judge_id(laura)?
+	// println!("judge = {:}", get_paradim_html_from_judge_id(laura)?
+	// 	.get_judge_struct(&names)?
+	// 	.to_string());
+	println!("judge = {:}", search_for_judge::search_tabroom_for_judge("Lev".to_string(), "Shuster".to_string())
+		.unwrap()
 		.get_judge_struct(&names)?
 		.to_string());
 	names.close();
-
+	// search_for_judge::search_tabroom_for_judge();
 	Ok(())
 }
 

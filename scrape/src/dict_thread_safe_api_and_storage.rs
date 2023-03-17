@@ -3,7 +3,6 @@ use serde_json::to_writer;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs::File, io::BufReader};
 use crate::structs::{self, GenderType};
-
 use std::sync::{Arc, RwLock};
 
 static PERSON_JSON: &str = "person_dict.json";
