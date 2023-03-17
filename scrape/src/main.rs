@@ -9,7 +9,6 @@ use regex::Regex;
 mod structs;
 mod search_for_judge;
 use structs::{Judge, Paradigm, GenderType, Gender, Age, Round, Team, Debater};
-mod api_and_storage;
 mod dict_thread_safe_api_and_storage;
 
 // Next Step: clean code, test on more judges to catch errors and edge cases/exspand enum options
@@ -24,11 +23,15 @@ mod dict_thread_safe_api_and_storage;
 fn main() -> Result<(), reqwest::Error> {
 	// let lev = 105729;
 	// let laura = 26867;
-	let steve = 26335;
+	// let steve = 26335;
 	let names = dict_thread_safe_api_and_storage::GetGender::new();
-	println!("judge = {:}", get_paradim_html_from_judge_id(steve)?
-		.get_judge_struct(&names)?
-		.to_string());
+	println!("judge = {:}", Judge::read_from_json_file("Steve Rowe").to_string());
+
+	// println!("judge = {:}", get_paradim_html_from_judge_id(steve)?
+	// 	.get_judge_struct(&names)?
+	// 	.to_json_file()
+	// 	.to_string());
+	
 	// println!("judge = {:}", search_for_judge::search_tabroom_for_judge("Lev".to_string(), "Shuster".to_string())
 	// 	.unwrap()
 	// 	.get_judge_struct(&names)?
@@ -108,10 +111,10 @@ impl HtmlUrlPair {
 			}
 		}
 		let debaters = Debater{
-			name: "Lev Shuster".to_string(),
+			name: "Unable to Find Name".to_string(),
 			gender: Gender {
-				confidance: 1.0,
-				get: GenderType::Male
+				confidance: 0.0,
+				get: GenderType::Unknown
 			}
 		};
 		

@@ -1,7 +1,10 @@
-use std::fs::File;
+use std::{fs::File, io::{Write, Read, BufReader}};
 
-use chrono::{DateTime, NaiveDate};//, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{DateTime, NaiveDate};
+use serde::{Serialize, Deserialize};
+use serde_json::to_writer; //, NaiveDate, NaiveDateTime, NaiveTime};
 
+#[derive(Serialize, Deserialize)]
 pub struct Paradigm {
 	pub(crate) last_updated: DateTime<chrono::FixedOffset>,
 	pub(crate) text: String,
@@ -12,7 +15,7 @@ impl Paradigm {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum GenderType {
 	Male,
 	Female,
@@ -20,7 +23,7 @@ pub enum GenderType {
 	Unknown,
 }
 // create a Gender type with a confidance float and a get which is an enum of "male, female, nonbinary, unknow  
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Gender {
 	pub(crate) confidance: f32,
 	pub(crate) get: GenderType,
@@ -31,6 +34,7 @@ impl Gender{
 	}
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Age {
 	pub(crate) confidance: f32,
 	pub(crate) get: u32,
@@ -41,7 +45,7 @@ impl Age {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Level {
 	HighSchool,
 	MiddleSchool,
@@ -58,7 +62,7 @@ impl Level {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum EventFormat {
 	_Policy,
 	_LincolnDouglas,
@@ -66,8 +70,7 @@ pub enum EventFormat {
 	Unknown,
 }
 
-
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum EventDivision {
 	Varsity,
 	JuniorVarsity,
@@ -86,7 +89,7 @@ impl EventDivision {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum EventRound {
 	Custom(u32),
 	Octofinals,
@@ -120,12 +123,12 @@ impl EventRound {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Team {
 	pub(crate) debaters: Vec<Debater>,
 }
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Debater {
 	pub(crate) name: String,
 	// school: String,
@@ -140,7 +143,7 @@ pub enum VoteResult {
 	Unknown,
 }
 // a vote can be simplified to a single VoteResult, most rounds will have a single value in either aff or neg but pannel rounds could have multiple votes spread over the options
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Vote {
 	pub(crate) aff: u32,
 	pub(crate) neg: u32,
@@ -149,7 +152,7 @@ pub struct Vote {
 }
 
 
-
+#[derive(Serialize, Deserialize)]
 pub struct Round {
 	pub(crate) judge: Option<Judge>,
 	pub(crate) tournament_name: String,
@@ -194,6 +197,7 @@ impl Round {
 	}
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Judge {
 	pub(crate) name: String,
 	pub(crate) paradigm: Paradigm,
@@ -214,15 +218,23 @@ impl Judge {
 		for round in &self.record {string.push_str(&format!("\n{}", round.to_string()));}
 		string
 	}
-	// fn write_to_json_file(&self) {
-	// 	let mut file = File::create(format!("{}_judge.json", self.name)).unwrap();
-	// 	file.write_all(self.to_string().as_bytes()).unwrap();
-	// }
-	// fn read_from_json_file(name: &str) -> Judge {
-	// 	let mut file = File::open(format!("{}_judge.json", name)).unwrap();
-	// 	let mut contents = String::new();
-	// 	file.read_to_string(&mut contents).unwrap();
-	// 	let judge: Judge = serde_json::from_str(&contents).unwrap();
-	// 	judge
-	// }
+	pub fn to_json_file(&self) -> &Judge {
+		let mut file = File::create(format!("Judge {}.json", self.name)).unwrap();
+		to_writer(&file, self).unwrap();
+		// file.write_all(self.to_string().as_bytes()).unwrap();
+		self
+	}
+	pub fn read_from_json_file(name: &str) -> Judge {
+		// let mut file = File::open(format!("{}_judge.json", name)).unwrap();
+		// let judge: Judge = from_reader(&file).unwrap();
+		
+		
+		let reader = BufReader::new(File::open(format!("Judge {}.json", name)).unwrap());
+		let judge: Judge = serde_json::from_reader(reader).unwrap();
+		judge
+		// let mut contents = String::new();
+		// file.read_to_string(&mut contents).unwrap();
+		// let judge: Judge = serde_json::from_str(&contents).unwrap();
+		// judge
+	}
 }
