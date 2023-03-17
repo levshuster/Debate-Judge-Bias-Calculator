@@ -24,14 +24,15 @@ mod dict_thread_safe_api_and_storage;
 fn main() -> Result<(), reqwest::Error> {
 	// let lev = 105729;
 	// let laura = 26867;
+	let steve = 26335;
 	let names = dict_thread_safe_api_and_storage::GetGender::new();
-	// println!("judge = {:}", get_paradim_html_from_judge_id(laura)?
-	// 	.get_judge_struct(&names)?
-	// 	.to_string());
-	println!("judge = {:}", search_for_judge::search_tabroom_for_judge("Lev".to_string(), "Shuster".to_string())
-		.unwrap()
+	println!("judge = {:}", get_paradim_html_from_judge_id(steve)?
 		.get_judge_struct(&names)?
 		.to_string());
+	// println!("judge = {:}", search_for_judge::search_tabroom_for_judge("Lev".to_string(), "Shuster".to_string())
+	// 	.unwrap()
+	// 	.get_judge_struct(&names)?
+	// 	.to_string());
 	names.close();
 	// search_for_judge::search_tabroom_for_judge();
 	Ok(())
@@ -47,13 +48,20 @@ fn get_html_from_url(url: &str) -> Result<HtmlUrlPair, reqwest::Error> {
 	Ok(HtmlUrlPair {
 		html: body,
 		url: url.to_string(),
+		first_name: None,
+		last_name: None,
+		result_number: None,
 	})
 }
 
 pub struct HtmlUrlPair {
 	pub(crate) html: String,
 	pub(crate) url: String,
+	pub(crate) first_name: Option<String>,
+	pub(crate) last_name: Option<String>,
+	pub(crate) result_number: Option<u32>,
 }
+
 impl HtmlUrlPair {
 	fn get_judge_struct(&self, names:&GetGender) -> Result<Judge, reqwest::Error> {
 		let name = get_name_from_paradim_html(self.html.clone())?;
@@ -63,7 +71,7 @@ impl HtmlUrlPair {
 			paradigm: get_paradim_struct_from_paradim_html(self.html.clone()),
 			gender: names.get(name2),
 			age: get_age_struct_from_paradim_html(self.html.clone()),
-			url: self.url.clone(),
+			url: self.to_string(),
 			record: get_record_from_paradim_html(self.html.clone(), names),
 		};
 		Ok(judge)
@@ -109,6 +117,24 @@ impl HtmlUrlPair {
 		
 		Team {
 			debaters: vec![debaters]
+		}
+	}
+	fn to_string(&self) -> String {
+		// if self has a first name and last name then use them
+		// else use the url
+		if self.first_name.is_some() && self.last_name.is_some() {
+			format!("
+			Url: {}
+			First Name: {}
+			Last Name: {}
+			Result Number: {}
+			", 
+			self.url, 
+			self.first_name.clone().unwrap(), 
+			self.last_name.clone().unwrap(), 
+			self.result_number.clone().unwrap())
+		} else {
+			self.url.clone()
 		}
 	}
 }

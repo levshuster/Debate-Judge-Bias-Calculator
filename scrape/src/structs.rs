@@ -106,8 +106,12 @@ impl EventRound {
 			_ => {
 				if string.contains("R") {
 					let num_str = &string[1..];
-					let num = num_str.parse::<u32>().unwrap();
-					EventRound::Custom(num)
+					match num_str.parse::<u32>() {
+						Ok(num) => EventRound::Custom(num),
+						Err(_) => EventRound::Unknown,
+					}
+					// let num = num_str.parse::<u32>().unwrap();
+					// EventRound::Custom(num)
 				} else {
 					EventRound::Unknown
 				}
