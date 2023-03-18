@@ -1,7 +1,6 @@
 use reqwest::header;
 use std::collections::HashMap;
-
-use crate::HtmlUrlPair;
+use crate::scrape::HtmlUrlPair;
 
 // todo, add handeling for when there are multiple results
 pub(crate) fn search_tabroom_for_judge(first_name: String, last_name: String) -> Result<HtmlUrlPair, Box<dyn std::error::Error>> {

@@ -39,7 +39,7 @@ impl<K: Eq + std::hash::Hash + Clone, V: Clone> ThreadSafeDict<K, V> {
 	
 }
 
-pub(crate) struct GetGender {
+pub struct GetGender {
 	dict: ThreadSafeDict<String, Gender>,
 	api_call_count: u32
 }
