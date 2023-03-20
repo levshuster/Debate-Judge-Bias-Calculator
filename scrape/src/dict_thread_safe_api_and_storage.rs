@@ -141,7 +141,7 @@ fn write_to_json_file(names: &ThreadSafeDict<String, Gender>, api_call_count: u3
 fn read_from_json_file() -> ThreadSafeDict<String, Gender> {
 	let reader = BufReader::new(File::open(PERSON_JSON).unwrap());
 	let list: Vec<(String, Gender)> = serde_json::from_reader(reader).unwrap_or([].to_vec());
-	let mut dict = ThreadSafeDict::new();
+	let dict = ThreadSafeDict::new();
 	for (k, v) in list {
 		dict.insert(k, v);
 	}

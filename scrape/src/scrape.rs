@@ -11,7 +11,6 @@ use crate::structs;
 use crate::dict_thread_safe_api_and_storage;
 
 
-
 pub fn get_paradim_html_from_judge_id(judge_id: u32)-> Result<HtmlUrlPair, reqwest::Error> {
 	get_html_from_url(&format!("https://www.tabroom.com/index/paradigm.mhtml?judge_person_id={}", judge_id))
 }
@@ -168,7 +167,7 @@ fn get_age_struct_from_paradim_html(html: String) -> Age {
 	get_age_from_name(html)
 }
 
-fn get_age_from_name(name: String) -> Age {
+fn get_age_from_name(_name: String) -> Age {
 	Age {
 		confidance: 0.0,
 		get: 0

@@ -1,5 +1,6 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ArgGroup};
 
+use crate::{dict_thread_safe_api_and_storage, search_for_judge, scrape::get_paradim_html_from_judge_id, api_succsess_rate, ballance_votes_for_and_against_women};
 
 #[derive(Debug, Parser)]
 #[clap(version = "0.0", author = "Lev Shuster", about = "A tool for Identifying probabamatic debate judges based on their tabroom records")]
@@ -8,13 +9,8 @@ pub struct Opts {
 	#[clap(subcommand)]
 	pub data_life_cycle: DataLifeCycle,
 	
-	// /// Analyze a previously generated judge file
-	// #[clap(subcommand)]
-	// pub analyze: Analyze,
-	
-	// /// View a previously generated judge file
-	// #[clap(subcommand)]
-	// pub view: View,
+	// #[clap(short, long, parse(from_occurrences))]
+	// verbosity: usize,
 }
 
 #[derive(Debug, Subcommand)]
@@ -32,6 +28,19 @@ pub enum DataLifeCycle {
 	Delete(Delete),
 }
 
+
+pub fn parse_cli(){
+	let args = Opts::parse();
+	match args.data_life_cycle {
+		DataLifeCycle::Generate(generate)  => parse_generate(generate),
+		DataLifeCycle::Analyze(analyze)  => parse_analyze(analyze),
+		DataLifeCycle::View(view)  => parse_view(view),
+		DataLifeCycle::Delete(delete)  => parse_delete(delete),
+	}
+	// println!("args long = {:?}", args.long);
+	
+}
+
 #[derive(Debug, Args)]
 pub struct View {
 	/// What type of data to generate
@@ -39,11 +48,18 @@ pub struct View {
 	pub view_type: Type,
 }
 
+
+// TODO
+fn parse_view(args: View){
+	println!("starting to parse the view command");
+}
+
+
 #[derive(Debug, Args)]
 pub struct Analyze {
 	/// What type of analysis to perform
 	#[clap(subcommand)]
-	pub analyze_Type: AnalyzeType,
+	pub analyze_type: AnalyzeType,
 }
 
 #[derive(Debug, Subcommand)]
@@ -106,11 +122,7 @@ pub struct AnalyzeTournament {
 pub struct AnalyzeJudge {
 	/// Search tab room for a judge with a matching first and last name
 	#[arg(short, long, value_name = "NAME")]
-	name: Option<String>,
-	
-	/// Scrapes judge information given a 
-	#[arg(short, long, value_name = "ID")]
-	id: Option<u32>,
+	name: String,
 	
 	/// Specify the type of analysis to perform
 	#[clap(subcommand)]
@@ -131,17 +143,25 @@ pub enum AnalyzeMethod {
 
 #[derive(Debug, Args)]
 pub struct AnalyzeGender {
-	/// Specify the type of analysis to perform
-	#[clap(subcommand)]
-	pub analyze_method: AnalyzeGenderMethod,
+	/// Analyzise the ability of this program to guess debaters genders\
+	#[arg(short = 'r', long)]
+	hit_rate: bool,
+	
+	/// analyze the ballance of vote for and against women
+	#[arg(short, long)]
+	ballance: bool,
+	
+	// /// Specify the type of analysis to perform
+	// #[clap(subcommand)]
+	// pub analyze_method: AnalyzeGenderMethod,
 }
 
-#[derive(Debug, Subcommand)]
-pub enum AnalyzeGenderMethod {
-	Distribution,
-	VotintPatterns,
-	Overview,
-}
+// #[derive(Debug, Subcommand)]
+// pub enum AnalyzeGenderMethod {
+// 	Distribution,
+// 	VotintPatterns,
+// 	Overview,
+// }
 
 #[derive(Debug, Args)]
 pub struct AnalyzeVoting {
@@ -159,15 +179,55 @@ pub enum AnalyzeVotingMethod {
 	Format,
 }
 
+// TODO
+fn parse_analyze(args: Analyze){
+	// match statment to find if is judge, judges, or tournament
+	match args.analyze_type {
+		AnalyzeType::Judge(judge) => parse_analyze_judge(judge),
+		AnalyzeType::Judges(judges) => parse_analyze_judges(judges),
+		AnalyzeType::Tournament(tournament) => parse_analyze_tournament(tournament),
+	}
+}
+
+
+fn parse_analyze_judge(args: AnalyzeJudge){
+	let judge = crate::structs::Judge::read_from_json_file(&args.name);
+	match args.analyze_method {
+		AnalyzeMethod::Age(age) => println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧"),
+		AnalyzeMethod::Voting(voting) => println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧"),
+		AnalyzeMethod::Gender(gender) => parse_analyze_judge_gender(judge, gender)
+	}
+}
+
+fn parse_analyze_judge_gender(judge: crate::structs::Judge, args: AnalyzeGender){
+	if args.hit_rate {
+		api_succsess_rate(&judge);
+	}
+	if args.ballance {
+		ballance_votes_for_and_against_women(&judge);
+	}
+}
+
+fn parse_analyze_judges(args: AnalyzeJudges){
+	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
+}
+
+fn parse_analyze_tournament(args: AnalyzeTournament){
+	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
+}
 
 
 #[derive(Debug, Args)]
 pub struct Delete {
 	/// What type content to delete
 	#[clap(subcommand)]
-	pub analyze_Type: Type,
+	pub analyze_type: Type,
 }
 
+// TODO
+fn parse_delete(args: Delete){
+	println!("starting to parse the delete command");
+}
 
 #[derive(Debug, Args)]
 pub struct Generate {
@@ -189,15 +249,31 @@ pub enum Type {
 }
 
 #[derive(Debug, Args)]
+#[command(group(
+	ArgGroup::new("search_type")
+		.required(true)
+		.args(["name", "id"]),
+))]
 pub struct Judge {
 	/// Search tab room for a judge with a matching first and last name
-	#[arg(short, long, value_name = "NAME")]
+	#[arg(short, long, value_name = "NAME", group = "search_type")]
 	name: Option<String>,
 	
 	/// Scrapes judge information given a 
-	#[arg(short, long, value_name = "ID")]
+	#[arg(short, long, value_name = "ID", group = "search_type")]
 	id: Option<u32>,
+	
+	// #[arg(long, value_parser = check_name_or_id)]
+	// _required: bool,
 }
+
+// fn check_name_or_id(judge: &Judge) -> Result<(), String> {
+// 	if judge.name.is_none() && judge.id.is_none() {
+// 		Err("either 'name' or 'id' is required".to_string())
+// 	} else {
+// 		Ok(())
+// 	}
+// }
 
 #[derive(Debug, Args)]
 pub struct Judges {
@@ -232,4 +308,60 @@ pub struct Tournament {
 	/// Scrapes judge information given a tabroom URL
 	#[arg(short, long, value_name = "URL")]
 	url: String,
+}
+
+
+fn parse_generate(args: Generate){
+	match args.scrape_type {
+		Type::Judge(judge) => parse_judge(judge),
+		Type::Judges(judges) => parse_judges(judges),
+		Type::Tournament(tournament) => parse_tournament(tournament),
+	}
+}
+
+fn parse_judge(args: Judge){
+	let names = dict_thread_safe_api_and_storage::GetGender::new();
+	
+	if (args.id.is_some()) {
+		println!("judge = {:}", get_paradim_html_from_judge_id(args.id.unwrap())
+			.unwrap()
+			.get_judge_struct(&names)
+			.unwrap()
+			.to_json_file()
+			.to_string());
+	}
+	
+	else if let Some(name) = args.name {
+		let split_names = name
+			.split(" ")
+			.collect::<Vec<&str>>();
+		
+		let first_last_name = match split_names.len() {
+			0 => panic!("{} is not a valid name", name),
+			1 => vec![split_names[0].to_string(), "".to_string()],
+			2 => vec![split_names[0].to_string(), split_names[1].to_string()],
+			_ => vec![split_names[0].to_string(), split_names[1..].join(" ")],
+		};
+		
+		println!("judge = {:}", search_for_judge::search_tabroom_for_judge(
+				first_last_name[0].to_string(),
+				first_last_name[1].to_string()
+			)
+			.unwrap()
+			.get_judge_struct(&names)
+			.unwrap()
+			.to_json_file()
+			.to_string()
+		);
+	}
+
+	names.close();
+}
+
+fn parse_judges(_args: Judges){
+	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
+}
+
+fn parse_tournament(_args: Tournament){
+	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
 }

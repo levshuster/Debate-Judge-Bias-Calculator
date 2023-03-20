@@ -15,7 +15,7 @@ impl Paradigm {
 	}
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum GenderType {
 	Male,
 	Female,
@@ -166,7 +166,7 @@ pub struct Round {
 	pub(crate) vote: Vote,
 }
 impl Round {
-	fn to_string(&self) -> String {
+	pub fn to_string(&self) -> String {
 		let mut string = String::new();
 		string.push_str(&format!("Tournament Name: {}", self.tournament_name));
 		string.push_str(&format!("\tLevel: {:?}", self.level));
@@ -219,7 +219,7 @@ impl Judge {
 		string
 	}
 	pub fn to_json_file(&self) -> &Judge {
-		let mut file = File::create(format!("Judge {}.json", self.name)).unwrap();
+		let file = File::create(format!("Judge {}.json", self.name)).unwrap();
 		to_writer(&file, self).unwrap();
 		// file.write_all(self.to_string().as_bytes()).unwrap();
 		self
