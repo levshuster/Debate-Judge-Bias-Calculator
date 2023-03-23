@@ -208,14 +208,14 @@ pub struct Judge {
 }
 
 impl Judge {
-	pub fn to_string(&self) -> String {
+	pub fn to_string(&self, is_short: bool) -> String {
 		let mut string = String::new();
 		string.push_str(&format!("\n\tName: {} ", self.name));
 		string.push_str(&format!("\n\tParadim: {:?}...", self.paradigm.to_string().chars().take(100).collect::<String>()));
 		string.push_str(&format!("\n\tGender: {}", self.gender.to_string()));
 		string.push_str(&format!("\n\tAge: {}", self.age.to_string()));
 		string.push_str(&format!("\n\tURL: {}", self.url));
-		for round in &self.record {string.push_str(&format!("\n{}", round.to_string()));}
+		for round in &self.record {string.push_str(&format!("\n{}", if is_short {round.to_string_short()} else {round.to_string()}));}
 		string
 	}
 	pub fn to_json_file(&self) -> &Judge {

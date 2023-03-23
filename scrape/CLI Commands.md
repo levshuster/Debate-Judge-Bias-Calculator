@@ -59,10 +59,16 @@ Scrape tabroom to generate a json file or a specified judge's record based on th
 $ scrape generate judge --name "Lev Shuster"
 ...
 
-$ scrape generate judge --name "steven helman"
+$ scrape generate judge --name "Steven Helman"
 ...
 ```
 ## View
+```
+$ scrape view judge --name "Lev Shuster"
+...
+
+$ scrape view --short judge --name "Steven Helman"
+```
 
 ## Analyze
 ```

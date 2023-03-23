@@ -45,13 +45,88 @@ pub fn parse_cli(){
 pub struct View {
 	/// What type of data to generate
 	#[clap(subcommand)]
-	pub view_type: Type,
+	pub view_type: ViewType,
+	
+	/// Shorten the output
+	#[arg(short, long)]
+	short: bool,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ViewType {
+	/// Interegate a judge
+	Judge(ViewJudge),
+	
+	/// Interegate a list of judges
+	Judges(ViewJudges),
+	
+	/// Interegate a tournament
+	Tournament(ViewTournament),
+} 
+
+#[derive(Debug, Args)]
+pub struct ViewJudge {
+	/// Search local judge .json files with a matching first and last name
+	#[arg(short, long, value_name = "NAME")]
+	name: String,
+
+}
+
+
+#[derive(Debug, Args)]
+pub struct ViewJudges {
+	/// Search local judge .json files with a matching first and last name
+	#[arg(short, long)]
+	name:bool,
+	
+	/// Specify that the file format the program must parse is a csv 
+	#[arg(long)]
+	csv: Option<bool>,
+	
+	/// Specify that the file format the program must parse is a json
+	#[arg(long)]
+	json: Option<bool>,
+	
+	/// Specify that the file format the program must parse is a txt
+	#[arg(long)]
+	txt: Option<bool>,
+	
+	/// Specify the path to the file that contains the list of judges
+	#[arg(short, long, value_name = "FILE")]
+	file_path: String,
+
+}
+
+
+#[derive(Debug, Args)]
+pub struct ViewTournament {
+	/// Scrapes judge information given a tabroom URL
+	#[arg(short, long, value_name = "URL")]
+	url: String,
+	
 }
 
 
 // TODO
 fn parse_view(args: View){
-	println!("starting to parse the view command");
+	match args.view_type{
+		ViewType::Judge(judge) => parse_view_judge(judge, args.short),
+		ViewType::Judges(judges) => parse_view_judges(judges, args.short),
+		ViewType::Tournament(tournament) => parse_view_tournament(tournament, args.short),
+	}
+}
+
+fn parse_view_judge(args: ViewJudge, is_short: bool){
+	let judge = crate::structs::Judge::read_from_json_file(&args.name);
+	println!("{}", judge.to_string(is_short));
+}
+
+fn parse_view_judges(args: ViewJudges, short: bool){
+	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
+}
+
+fn parse_view_tournament(args: ViewTournament, short: bool){
+	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
 }
 
 
@@ -120,7 +195,7 @@ pub struct AnalyzeTournament {
 
 #[derive(Debug, Args)]
 pub struct AnalyzeJudge {
-	/// Search tab room for a judge with a matching first and last name
+	/// Search local judge .json files with a matching first and last name
 	#[arg(short, long, value_name = "NAME")]
 	name: String,
 	
@@ -150,18 +225,7 @@ pub struct AnalyzeGender {
 	/// analyze the ballance of vote for and against women
 	#[arg(short, long)]
 	ballance: bool,
-	
-	// /// Specify the type of analysis to perform
-	// #[clap(subcommand)]
-	// pub analyze_method: AnalyzeGenderMethod,
 }
-
-// #[derive(Debug, Subcommand)]
-// pub enum AnalyzeGenderMethod {
-// 	Distribution,
-// 	VotintPatterns,
-// 	Overview,
-// }
 
 #[derive(Debug, Args)]
 pub struct AnalyzeVoting {
@@ -179,7 +243,6 @@ pub enum AnalyzeVotingMethod {
 	Format,
 }
 
-// TODO
 fn parse_analyze(args: Analyze){
 	// match statment to find if is judge, judges, or tournament
 	match args.analyze_type {
@@ -234,6 +297,10 @@ pub struct Generate {
 	/// What type of data to collect
 	#[clap(subcommand)]
 	pub scrape_type: Type,
+	
+	/// Shorten the output
+	#[arg(short, long)]
+	short: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -313,13 +380,13 @@ pub struct Tournament {
 
 fn parse_generate(args: Generate){
 	match args.scrape_type {
-		Type::Judge(judge) => parse_judge(judge),
-		Type::Judges(judges) => parse_judges(judges),
-		Type::Tournament(tournament) => parse_tournament(tournament),
+		Type::Judge(judge) => parse_judge(judge, args.short),
+		Type::Judges(judges) => parse_judges(judges, args.short),
+		Type::Tournament(tournament) => parse_tournament(tournament, args.short),
 	}
 }
 
-fn parse_judge(args: Judge){
+fn parse_judge(args: Judge, is_short: bool){
 	let names = dict_thread_safe_api_and_storage::GetGender::new();
 	
 	if (args.id.is_some()) {
@@ -328,7 +395,8 @@ fn parse_judge(args: Judge){
 			.get_judge_struct(&names)
 			.unwrap()
 			.to_json_file()
-			.to_string());
+			.to_string(is_short)
+		);
 	}
 	
 	else if let Some(name) = args.name {
@@ -351,17 +419,17 @@ fn parse_judge(args: Judge){
 			.get_judge_struct(&names)
 			.unwrap()
 			.to_json_file()
-			.to_string()
+			.to_string(is_short)
 		);
 	}
 
 	names.close();
 }
 
-fn parse_judges(_args: Judges){
+fn parse_judges(_args: Judges, _is_short: bool){
 	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
 }
 
-fn parse_tournament(_args: Tournament){
+fn parse_tournament(_args: Tournament, _is_short: bool){
 	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
 }
