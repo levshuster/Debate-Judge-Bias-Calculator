@@ -3,6 +3,11 @@ mod search_for_judge;
 mod args;
 mod scrape;
 mod dict_thread_safe_api_and_storage;
+use std::{io, fs};
+use std::path::Path;
+use statrs::distribution::{Binomial, Discrete, DiscreteCDF};
+
+
 use structs::{Debater, GenderType};
 
 use crate::args::parse_cli;
@@ -18,8 +23,18 @@ use crate::structs::{Judge, Team};
 
 fn main() -> Result<(), reqwest::Error> {
 	parse_cli();
+	// println!("{}", calculate_p_value(5., 5.));
 	Ok(())
 }
+
+
+// fn calculate_p_value(w: f64, m: f64) -> f64 {
+//     let n: u64 = w + m;
+//     let p = 0.5;
+//     let binomial_dist = Binomial::new(n, p).unwrap();
+//     let p_value = 2.0 * f64::min(binomial_dist.cdf(w as u64), 1.0 - binomial_dist.cdf(m - 1));
+//     p_value
+// }
 
 pub fn api_succsess_rate(judge: &Judge){
 	let threshold = 0.5;
@@ -110,4 +125,32 @@ pub fn ballance_votes_for_and_against_women(judge: &Judge){
 		.sum();
 	
 	println!("the judge has given {} more ballots to women than men", point_total);
+}
+
+fn get_json_file_names(dir_path: &str, start_of_file: &str) -> io::Result<Vec<String>> {
+	let entries = fs::read_dir(dir_path)?;
+
+	let mut json_files = Vec::new();
+
+	for entry in entries {
+		let entry = entry?;
+		let file_type = entry.file_type()?;
+
+		if file_type.is_file() {
+			let file_name = entry.file_name();
+			let name_string = file_name.to_string_lossy().to_string();
+				
+			let ext = Path::new(&file_name)
+				.extension()
+				.and_then(|ext| ext.to_str());
+
+			if ext == Some("json") && name_string.starts_with(start_of_file) {
+				let truncated_name_string = name_string[6..name_string.len() - 5].to_owned();
+				json_files.push(truncated_name_string);
+			}
+			
+		}
+	}
+
+	Ok(json_files)
 }

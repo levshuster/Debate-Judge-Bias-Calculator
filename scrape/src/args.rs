@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand, ArgGroup};
 
-use crate::{dict_thread_safe_api_and_storage, search_for_judge, scrape::get_paradim_html_from_judge_id, api_succsess_rate, ballance_votes_for_and_against_women};
+use crate::{dict_thread_safe_api_and_storage, search_for_judge, scrape::get_paradim_html_from_judge_id, api_succsess_rate, ballance_votes_for_and_against_women, get_json_file_names};
 
 #[derive(Debug, Parser)]
 #[clap(version = "0.0", author = "Lev Shuster", about = "A tool for Identifying probabamatic debate judges based on their tabroom records")]
@@ -57,46 +57,25 @@ pub enum ViewType {
 	/// Interegate a judge
 	Judge(ViewJudge),
 	
-	/// Interegate a list of judges
-	Judges(ViewJudges),
-	
 	/// Interegate a tournament
 	Tournament(ViewTournament),
 } 
 
 #[derive(Debug, Args)]
+#[command(group(
+	ArgGroup::new("require-one")
+		.required(true)
+		.args(["name", "list"]),
+))]
 pub struct ViewJudge {
 	/// Search local judge .json files with a matching first and last name
 	#[arg(short, long, value_name = "NAME")]
-	name: String,
+	name: Option<String>,
 
-}
-
-
-#[derive(Debug, Args)]
-pub struct ViewJudges {
-	/// Search local judge .json files with a matching first and last name
+	/// View all the available judges
 	#[arg(short, long)]
-	name:bool,
-	
-	/// Specify that the file format the program must parse is a csv 
-	#[arg(long)]
-	csv: Option<bool>,
-	
-	/// Specify that the file format the program must parse is a json
-	#[arg(long)]
-	json: Option<bool>,
-	
-	/// Specify that the file format the program must parse is a txt
-	#[arg(long)]
-	txt: Option<bool>,
-	
-	/// Specify the path to the file that contains the list of judges
-	#[arg(short, long, value_name = "FILE")]
-	file_path: String,
-
+	list: bool,
 }
-
 
 #[derive(Debug, Args)]
 pub struct ViewTournament {
@@ -111,18 +90,21 @@ pub struct ViewTournament {
 fn parse_view(args: View){
 	match args.view_type{
 		ViewType::Judge(judge) => parse_view_judge(judge, args.short),
-		ViewType::Judges(judges) => parse_view_judges(judges, args.short),
 		ViewType::Tournament(tournament) => parse_view_tournament(tournament, args.short),
 	}
 }
 
 fn parse_view_judge(args: ViewJudge, is_short: bool){
-	let judge = crate::structs::Judge::read_from_json_file(&args.name);
-	println!("{}", judge.to_string(is_short));
-}
-
-fn parse_view_judges(args: ViewJudges, short: bool){
-	println!("🚧🚧 UNDER CONSTRUCTION 🚧🚧");
+	if args.name.is_some(){
+		let judge = crate::structs::Judge::read_from_json_file(&args.name.unwrap());
+		println!("{}", judge.to_string(is_short));
+	}
+	else if args.list{
+		// let dir_path = "..";
+		let dir_path = ".";
+		let json_files = get_json_file_names(dir_path, "Judge ").unwrap_or(vec!("No files found".to_string()));
+		println!("The Judges you can view or analyze are : {:?}", json_files);
+	}
 }
 
 fn parse_view_tournament(args: ViewTournament, short: bool){
@@ -329,18 +311,8 @@ pub struct Judge {
 	/// Scrapes judge information given a 
 	#[arg(short, long, value_name = "ID", group = "search_type")]
 	id: Option<u32>,
-	
-	// #[arg(long, value_parser = check_name_or_id)]
-	// _required: bool,
-}
 
-// fn check_name_or_id(judge: &Judge) -> Result<(), String> {
-// 	if judge.name.is_none() && judge.id.is_none() {
-// 		Err("either 'name' or 'id' is required".to_string())
-// 	} else {
-// 		Ok(())
-// 	}
-// }
+}
 
 #[derive(Debug, Args)]
 pub struct Judges {
