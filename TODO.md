@@ -9,3 +9,7 @@
 - [] create scrape league
 - [] export washington debate leage as kaggle dataset
 - [] create gui
+- [] create stats on gender dirstibution of tournament winners
+- [] make a tool so people can test name against the api: 
+    - We included this tool in an effort to be transparent about the limitations of our tool. We hope to improve this tool in the future.
+    - This page is also helpful for determining a reasonable confidance threashold (try entering a name like 'alex' to see how our confidence falls with name common to multiple genders)
