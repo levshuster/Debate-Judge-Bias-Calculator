@@ -13,14 +13,6 @@ use structs::{Debater, GenderType};
 use crate::args::parse_cli;
 use crate::structs::{Judge, Team};
 
-// Next Step: clean code, test on more judges to catch errors and edge cases/exspand enum options
-// save judge struts to a file so multiple can be compaired and data can be interpreted by a stats file
-
-// start stats file
-// write a function that will graph the confidance range to help pick a threshold
-// write a function that will give the p value of the judge gender voting history
-
-
 fn main() -> Result<(), reqwest::Error> {
 	parse_cli();
 	// println!("{}", calculate_p_value(5., 5.));

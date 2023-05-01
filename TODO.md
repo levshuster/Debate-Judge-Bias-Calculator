@@ -1,0 +1,11 @@
+- [] Resolve Warnings
+- [] Test on more judges to find edge cases and exspand enum set
+- [] write a function that will graph the confidance range to help pick a threshold
+- [] write a function that will give the p value of the judge gender voting history
+- [] Alow data used in analysis to be filtered by Date
+- [] Alow data used in analysis to be filtered by Division
+- [] Alow data used in analysis to be filtered by Format
+- [] Create scrape tournament
+- [] create scrape league
+- [] export washington debate leage as kaggle dataset
+- [] create gui
