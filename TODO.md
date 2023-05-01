@@ -1,0 +1,15 @@
+- [] Resolve Warnings
+- [] Test on more judges to find edge cases and exspand enum set
+- [] write a function that will graph the confidance range to help pick a threshold
+- [] write a function that will give the p value of the judge gender voting history
+- [] Alow data used in analysis to be filtered by Date
+- [] Alow data used in analysis to be filtered by Division
+- [] Alow data used in analysis to be filtered by Format
+- [] Create scrape tournament
+- [] create scrape league
+- [] export washington debate leage as kaggle dataset
+- [] create gui
+- [] create stats on gender dirstibution of tournament winners
+- [] make a tool so people can test name against the api: 
+    - We included this tool in an effort to be transparent about the limitations of our tool. We hope to improve this tool in the future.
+    - This page is also helpful for determining a reasonable confidance threashold (try entering a name like 'alex' to see how our confidence falls with name common to multiple genders)
