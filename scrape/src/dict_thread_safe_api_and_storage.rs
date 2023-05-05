@@ -1,7 +1,7 @@
 use reqwest::blocking::get;
 use serde_json::to_writer;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs::File, io::BufReader};
+use std::{collections::HashMap, fs::File, io::BufReader, alloc::System};
 use crate::structs::{self, GenderType};
 use std::sync::{Arc, RwLock};
 
@@ -77,6 +77,7 @@ fn get_genders_with_api(name: &str) -> Option<Gender> {
 	let response = get(&api_url)
 		.unwrap()
 		.json::<Vec<Gender>>();
+	println!("API call: {}", api_url);
 	match response {
 		Ok(response) => Some(response[0].clone()),
 		Err(_) => None,
@@ -84,18 +85,8 @@ fn get_genders_with_api(name: &str) -> Option<Gender> {
 }
 
 fn get_gender(name:String, existing_names: &ThreadSafeDict<String, Gender>) -> Option<structs::Gender> {
-	// let first_name_option = name.split_whitespace().next();
-	// if first_name_option.is_none() {
-	// 	return None;
-	// }
-	// let first_name = first_name_option
-	// 	.unwrap()
-	// 	.to_string();
-	
-	// let local = get_gender_to_local_type(first_name, existing_names).unwrap();
-
 	let first_name = name.split_whitespace().next()?.to_string();
-    let local = get_gender_to_local_type(first_name, existing_names)?;
+	let local = get_gender_to_local_type(first_name, existing_names)?;
 	let binding = "unknown".to_string();
 	let gender = local.gender
 		.as_ref()
@@ -109,7 +100,7 @@ fn get_gender(name:String, existing_names: &ThreadSafeDict<String, Gender>) -> O
 		"unknown" => GenderType::Unknown,
 		_ => panic!("Invalid gender type: {:?}", local), // handle invalid input
 	};
-
+	
 	Some(structs::Gender {
 		confidance: local.probability, 
 		get: gender_type
@@ -127,7 +118,6 @@ fn get_gender_to_local_type(name: String, existing_names:&ThreadSafeDict<String,
 		return None;
 	}
 	let result = new_name.unwrap();
-	// println!("Got a new name: {:?}\n", new_name);
 	existing_names.insert(name.clone(), result.clone());
 	return Some(result);
 }
@@ -135,7 +125,7 @@ fn get_gender_to_local_type(name: String, existing_names:&ThreadSafeDict<String,
 fn write_to_json_file(names: &ThreadSafeDict<String, Gender>, api_call_count: u32) {
 	let file = File::create(PERSON_JSON).unwrap();
 	to_writer(&file, &names.to_list()).unwrap();
-	println!("Wrote to file {} times", api_call_count);
+	// println!("Wrote to file {} times", api_call_count);
 }
 
 fn read_from_json_file() -> ThreadSafeDict<String, Gender> {

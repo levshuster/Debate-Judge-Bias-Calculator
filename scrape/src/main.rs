@@ -5,11 +5,8 @@ mod scrape;
 mod dict_thread_safe_api_and_storage;
 use std::{io, fs};
 use std::path::Path;
-use statrs::distribution::{Binomial, Discrete, DiscreteCDF};
-
 
 use structs::{Debater, GenderType};
-
 use crate::args::parse_cli;
 use crate::structs::{Judge, Team};
 
@@ -41,7 +38,6 @@ pub fn api_succsess_rate(judge: &Judge){
 		}
 	}
 	
-	
 	// get the total number of debaters
 	let total = debaters.len() as u32;
 	
@@ -60,8 +56,6 @@ pub fn api_succsess_rate(judge: &Judge){
 	println!("the api succsess rate is {}%", (total - unknown) as f32 / total as f32 * 100.0);
 	println!("\nof the {} debaters, {} have a confidance less than {}", total, less_than_threshold, threshold);
 	println!("the api returned results greather than the threshold {}% of the time", (total - less_than_threshold) as f32 / total as f32 * 100.0);
-	
-	
 }
 
 pub fn ballance_votes_for_and_against_women(judge: &Judge){
@@ -110,18 +104,14 @@ pub fn ballance_votes_for_and_against_women(judge: &Judge){
 				true => 0,
 				false => winning_score.0 - losing_score.0,
 			};
-			// println!("round {} ", round.to_string());
-			// println!("{} ", result);
 			result
 		})
 		.sum();
-	
 	println!("the judge has given {} more ballots to women than men", point_total);
 }
 
 fn get_json_file_names(dir_path: &str, start_of_file: &str) -> io::Result<Vec<String>> {
 	let entries = fs::read_dir(dir_path)?;
-
 	let mut json_files = Vec::new();
 
 	for entry in entries {
@@ -131,7 +121,6 @@ fn get_json_file_names(dir_path: &str, start_of_file: &str) -> io::Result<Vec<St
 		if file_type.is_file() {
 			let file_name = entry.file_name();
 			let name_string = file_name.to_string_lossy().to_string();
-				
 			let ext = Path::new(&file_name)
 				.extension()
 				.and_then(|ext| ext.to_str());
@@ -140,9 +129,7 @@ fn get_json_file_names(dir_path: &str, start_of_file: &str) -> io::Result<Vec<St
 				let truncated_name_string = name_string[6..name_string.len() - 5].to_owned();
 				json_files.push(truncated_name_string);
 			}
-			
 		}
 	}
-
 	Ok(json_files)
 }

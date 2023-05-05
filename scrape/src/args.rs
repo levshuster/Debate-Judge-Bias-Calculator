@@ -1,16 +1,11 @@
 use clap::{Args, Parser, Subcommand, ArgGroup};
-
 use crate::{dict_thread_safe_api_and_storage, search_for_judge, scrape::get_paradim_html_from_judge_id, api_succsess_rate, ballance_votes_for_and_against_women, get_json_file_names};
-
 #[derive(Debug, Parser)]
 #[clap(version = "0.0", author = "Lev Shuster", about = "A tool for Identifying probabamatic debate judges based on their tabroom records")]
 pub struct Opts {
 	/// Search tabroom to collect data
 	#[clap(subcommand)]
 	pub data_life_cycle: DataLifeCycle,
-	
-	// #[clap(short, long, parse(from_occurrences))]
-	// verbosity: usize,
 }
 
 #[derive(Debug, Subcommand)]
@@ -36,9 +31,7 @@ pub fn parse_cli(){
 		DataLifeCycle::Analyze(analyze)  => parse_analyze(analyze),
 		DataLifeCycle::View(view)  => parse_view(view),
 		DataLifeCycle::Delete(delete)  => parse_delete(delete),
-	}
-	// println!("args long = {:?}", args.long);
-	
+	}	
 }
 
 #[derive(Debug, Args)]
@@ -82,7 +75,6 @@ pub struct ViewTournament {
 	/// Scrapes judge information given a tabroom URL
 	#[arg(short, long, value_name = "URL")]
 	url: String,
-	
 }
 
 
@@ -394,7 +386,6 @@ fn parse_judge(args: Judge, is_short: bool){
 			.to_string(is_short)
 		);
 	}
-
 	names.close();
 }
 

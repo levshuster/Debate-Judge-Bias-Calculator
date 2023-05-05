@@ -1,5 +1,4 @@
 use std::{fs::File, io::{BufReader}};
-
 use chrono::{DateTime, NaiveDate};
 use serde::{Serialize, Deserialize};
 use serde_json::to_writer; //, NaiveDate, NaiveDateTime, NaiveTime};
@@ -50,6 +49,7 @@ pub enum Level {
 	HighSchool,
 	MiddleSchool,
 	College,
+	Unknown,
 }
 impl Level {
 	pub(crate) fn match_string(string: &str) -> Level {
@@ -57,7 +57,10 @@ impl Level {
 			"HS" => Level::HighSchool,
 			"MS" => Level::MiddleSchool,
 			"C" => Level::College,
-			_ => panic!("Invalid level: {}", string),
+			_ => {
+				println!("Invalid level: {}", string);
+				Level::Unknown
+			}
 		}
 	}
 }
@@ -113,8 +116,6 @@ impl EventRound {
 						Ok(num) => EventRound::Custom(num),
 						Err(_) => EventRound::Unknown,
 					}
-					// let num = num_str.parse::<u32>().unwrap();
-					// EventRound::Custom(num)
 				} else {
 					EventRound::Unknown
 				}
@@ -150,7 +151,6 @@ pub struct Vote {
 	pub(crate) tie: u32,
 	pub(crate) unknown: u32,
 }
-
 
 #[derive(Serialize, Deserialize)]
 pub struct Round {
@@ -221,20 +221,11 @@ impl Judge {
 	pub fn to_json_file(&self) -> &Judge {
 		let file = File::create(format!("Judge {}.json", self.name)).unwrap();
 		to_writer(&file, self).unwrap();
-		// file.write_all(self.to_string().as_bytes()).unwrap();
 		self
 	}
 	pub fn read_from_json_file(name: &str) -> Judge {
-		// let mut file = File::open(format!("{}_judge.json", name)).unwrap();
-		// let judge: Judge = from_reader(&file).unwrap();
-		
-		
 		let reader = BufReader::new(File::open(format!("Judge {}.json", name)).unwrap());
 		let judge: Judge = serde_json::from_reader(reader).unwrap();
 		judge
-		// let mut contents = String::new();
-		// file.read_to_string(&mut contents).unwrap();
-		// let judge: Judge = serde_json::from_str(&contents).unwrap();
-		// judge
 	}
 }
