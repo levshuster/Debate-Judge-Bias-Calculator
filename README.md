@@ -6,7 +6,7 @@ After spendingsix years in competitive academic debate as a judge, team captain,
 
 A benifit of moving from paper to a central tournaments managment software is the often decade long public record of every round a judge has prosided over. There are no tools to help debaters sort through this data because the data is relitively unhelpful in making future decisions (only including dividion, format, result, and the debaters' names). In 2021 I stumbled across an API that takes a name and returns the name's gender and condidance rating. While haldly a exact tool, by applying the API to guess at debater's genders, I can provide usful insights towards judges', tournaments', and leages', gender biases.
 
-If you have any interest in learning about the rampant discrimination in United States Debate here are some great articles. 
+If you have any interest in learning about the rampant discrimination in United States Debate here are some great articles.
 TLDR: there is a disgusting amount of sexism in debate which causes women to be forced out of the activity at depressing rates. There has been quantitative research on the effect of sexism but no substantial work on the effect and existance of discriminatory Judges within the activity.
 - https://sarahisomcenter.org/blog/2019/11/20/combatting-sexism-in-speech-and-debate-programs
 - https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3715996
@@ -33,51 +33,13 @@ For coaches this tool can answer questions like:
 1. Which tournaments should I take my team to?
 2. Which coaches should I hire?
 
-## How to Quantify Discrimination?
-
-Consider a Policy debate round (two teams of two debaters):
-
-1. Each debater's name is looked up, if the confidance level is lower than the cutoff, the process stops and this round doesn't effect the judge's bias rating.
-2. For each woman who wins the round, the rounds score increments
-3. For each woman who loses the round, the round score decrements
-4. For each man who wins the round, the round score decrements
-5. For each man who loses the round, the round score decrements
-
-This leaves a round score between -4 and 4
-
-This same method works for any debate format with any number of debaters (Lincon Douglas ranges from 2 to -2).
-
-A judge's bias rating is the sum of all of their round scores
-
-### What does this look like?
-- If two men win against two men, the round score is 0 (-1 + -1 + 1 + 1)
-- If two women win against two women, the round score is 0 (1 + 1 + -1 + -1)
-- If a man and a woman win against a man and a women, the round score is 0 (-1 + 1 + 1 + -1)
-- If a man and a woman win agains a man and a person of unknown gender, the round score is 0 (if a name's gender confidance doesn't meet the threshold the entire round has no impact on the judge's bias rating) 
-- If two men win against two women, the score is -4 (-1 + -1 + -1 + -1)
-- If two women win against two men, the score is 4 (1 + 1 + 1 + 1)
-- If two women win against a man and a woman, the score is 2 (1 + 1 + 1 + -1)
-
-Consider the following Judge record:
-|  | Aff Team | Neg Team | Winning Team | Round Score |
-| --- | --- | --- | --- | --- |
-| Round 1 | Male/Female | Female/Female | Neg | 2
-| Round 2 | Male/Female | Female/Female | Aff | -2
-| Round 3 | Female/Female | Male/Male | Neg | -4
-| Round 4 | Male/Male | Male/Male | Aff | 0
-| Round 5 | Female/Male | Male/Male | Neg | -2
-
-This judge's bias rating is -6 which shows a preference for voting for men.
-
-However with a p-value of 0.3, this preference is not significant (this could be explained by chance) so no conclusions can be make about the judge's bias.
-
 ## Shortcommings
 
 - Doesn't count nonbinary people: Gender neutral names will be thrown out meaning that this tool has no chance of identifying bias against nonbinary people.
 
 - Garbage in, garbage out: If the API is based on data from western countries, debate rounds that include names less common in western countries are more likely to be thrown out. Meaning intersectional bias will be underestimated by this tool.
 
-- It's just a number: This tool doesn't devalue personal exsperences with a judge. This tool is meant to be used in conjunction with other evidence to make a case for bias. There is a hunderd ways for a judge to be biased without it showing up on this one particular measure. 
+- It's just a number: This tool doesn't devalue personal exsperences with a judge. This tool is meant to be used in conjunction with other evidence to make a case for bias. There is a hunderd ways for a judge to be biased without it showing up on this one particular measure.
 
 - It's all probability: When you consider 10,000 bias free judges, we would exspect 500 judges to have a p-value of 0.05 or less showing bias. This tool works best when focusing on tournaments and leauges, rather than individual judges. The larger the number of rounds considered, the more likely it is that a judge's bias rating is to reflect reality.
 
