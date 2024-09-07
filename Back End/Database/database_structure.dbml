@@ -23,7 +23,6 @@ Table tournament {
   id integer [primary key]
   name  text
   url text
-  start_date date
   updated timestamp
   details json
   to_scrape bool
@@ -37,6 +36,7 @@ Table division {
   level text [note: "Open, Novice, Varsity"]
   round text [note: "Semi-Final, Round 1, 3"]
   is_elimination bool
+  start_date date
   url text
   details json
   Note: "Example: Novice Public Forum, Varsity Policy, Open Dramatic Interp"

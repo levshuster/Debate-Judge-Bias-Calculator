@@ -1,4 +1,5 @@
 ```python
-pip install streamlit watchdog
-streamlit run main.py
+pip install -r requirements.txt
+
+streamlit run Home.py
 ```
