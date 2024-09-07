@@ -21,19 +21,20 @@ CREATE TABLE "tournament" (
   "id" integer PRIMARY KEY,
   "name" text,
   "url" text,
-  "start_date" date,
   "updated" timestamp,
   "details" json,
   "to_scrape" bool
 );
 
 CREATE TABLE "division" (
-  "id" integer PRIMARY KEY,
+  "id" integer,
   "tournament" integer,
+  "division_name" text,
   "format" text,
   "level" text,
   "round" text,
   "is_elimination" bool,
+  "start_date" date,
   "url" text,
   "details" json
 );
@@ -41,6 +42,8 @@ CREATE TABLE "division" (
 CREATE TABLE "pairing" (
   "id" integer PRIMARY KEY,
   "division" integer,
+  "tournamet" integer,
+  "url" text,
   "timestamp" timestamp
 );
 
@@ -118,6 +121,8 @@ ALTER TABLE "tournament_group"."bindings" ADD FOREIGN KEY ("tournament") REFEREN
 ALTER TABLE "division" ADD FOREIGN KEY ("tournament") REFERENCES "tournament" ("id");
 
 ALTER TABLE "pairing" ADD FOREIGN KEY ("division") REFERENCES "division" ("id");
+
+ALTER TABLE "pairing" ADD FOREIGN KEY ("tournamet") REFERENCES "tournament" ("id");
 
 ALTER TABLE "pairing"."team" ADD FOREIGN KEY ("round") REFERENCES "pairing" ("id");
 

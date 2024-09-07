@@ -30,8 +30,9 @@ Table tournament {
 }
 
 Table division {
-  id integer [primary key]
+  id integer
   tournament integer [ref: > tournament.id]
+  division_name text
   format text [note: "Policy, LD, Public Forum"]
   level text [note: "Open, Novice, Varsity"]
   round text [note: "Semi-Final, Round 1, 3"]
@@ -45,6 +46,8 @@ Table division {
 Table pairing {
   id integer [primary key]
   division integer [ref: > division.id]
+  tournamet integer [ref: > tournament.id]
+  url text
   timestamp timestamp
 }
 
