@@ -1,0 +1,92 @@
+Project debate_bias_calc {
+  database_type: 'PostgreSQL'
+  Note: 'Description of the project'
+}
+
+Table tournament_group.details {
+  id integer [primary key]
+  name text
+  updated datetime
+  url text
+  parent_group integer [ref: > tournament_group.details.id]
+  details json
+  Note: "Examples: Washington State, TOC qualifiers, Urban Debate Leage, etc."
+}
+
+Table tournament_group.bindings {
+  group integer [ref: > tournament_group.details.id]
+  tournament integer [ref: > tournament.id]
+}
+
+Table tournament {
+  id integer [primary key]
+  name  text
+  url text
+  start_date date
+  updated datetime
+  details json
+  Note: "Examples: UPS invitational, Rose City Round Robin, etc."
+}
+
+Table division {
+  id integer [primary key]
+  tournament integer [ref: > tournament.id]
+  format text
+  level text
+}
+
+Table pairing {
+  id integer [primary key]
+  division integer [ref: > division.id]
+  round text
+  datetime datetime
+}
+
+Table pairing.team {
+  id integer [primary key]
+  round integer [ref: > pairing.id]
+  label text [note: "Examples include Aff, Neg, Pro, Con, etc."]
+  school integer [ref: > school.id]
+}
+
+Table pairing.debater {
+  id integer [ref: > debater.id]
+  team integer [ref: > pairing.team.id]
+}
+
+Table pairing.judge {
+  round integer [ref: > pairing.id]
+  vote integer [ref: >pairing.team.id]
+  judge integer [ref: > judge.id]
+}
+
+Table school {
+  id integer [primary key]
+  name text
+  details json
+}
+
+
+
+Table judge {
+  id integer [primary key]
+  name text
+  first_name text [ref: > gender_binding.first_name]
+  url text
+  updated datetime
+  details json
+}
+
+Table debater {
+  id integer [primary key]
+  name text
+  first_name text [ref: > gender_binding.first_name]
+}
+
+Table gender_binding {
+  first_name text [primary key]
+  gender text
+  confidance decimal
+  updated datetime
+  source text
+}
