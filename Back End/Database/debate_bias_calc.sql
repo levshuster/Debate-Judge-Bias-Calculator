@@ -1,7 +1,5 @@
 CREATE SCHEMA "tournament_group";
 
-CREATE SCHEMA "pairing";
-
 CREATE TABLE "tournament_group"."details" (
   "id" integer PRIMARY KEY,
   "name" text,
@@ -43,16 +41,22 @@ CREATE TABLE "pairing" (
   "id" integer PRIMARY KEY,
   "division" integer,
   "tournamet" integer,
-  "url" text,
-  "timestamp" timestamp
+  "first_url" text
 );
 
-CREATE TABLE "school" (
-  "id" integer PRIMARY KEY,
+CREATE TABLE "votes" (
+  "pairing" integer,
+  "judge" integer,
+  "team" text,
+  "won" bool
+);
+
+CREATE TABLE "speaker_points" (
+  "pairing" integer,
+  "judge" integer,
+  "team" text,
   "name" text,
-  "to_scrape" bool,
-  "url" text,
-  "details" json
+  "value" decimal
 );
 
 CREATE TABLE "judge" (
@@ -66,9 +70,10 @@ CREATE TABLE "judge" (
 );
 
 CREATE TABLE "debater" (
-  "id" integer PRIMARY KEY,
+  "team" text,
   "name" text,
-  "first_name" text
+  "first_name" text,
+  "tournament" integer
 );
 
 CREATE TABLE "gender_binding" (
@@ -77,25 +82,6 @@ CREATE TABLE "gender_binding" (
   "confidance" decimal,
   "updated" timestamp,
   "source" text
-);
-
-CREATE TABLE "pairing"."team" (
-  "id" integer PRIMARY KEY,
-  "round" integer,
-  "label" text,
-  "school" integer
-);
-
-CREATE TABLE "pairing"."debater" (
-  "id" integer,
-  "team" integer
-);
-
-CREATE TABLE "pairing"."judge" (
-  "round" integer,
-  "vote" integer,
-  "judge" integer,
-  "school" integer
 );
 
 COMMENT ON TABLE "tournament_group"."details" IS 'Examples: Washington State, TOC qualifiers, Urban Debate Leage, etc.';
@@ -110,8 +96,6 @@ COMMENT ON COLUMN "division"."level" IS 'Open, Novice, Varsity';
 
 COMMENT ON COLUMN "division"."round" IS 'Semi-Final, Round 1, 3';
 
-COMMENT ON COLUMN "pairing"."team"."label" IS 'Examples include Aff, Neg, Pro, Con, etc.';
-
 ALTER TABLE "tournament_group"."details" ADD FOREIGN KEY ("parent_group") REFERENCES "tournament_group"."details" ("id");
 
 ALTER TABLE "tournament_group"."bindings" ADD FOREIGN KEY ("group") REFERENCES "tournament_group"."details" ("id");
@@ -124,22 +108,49 @@ ALTER TABLE "pairing" ADD FOREIGN KEY ("division") REFERENCES "division" ("id");
 
 ALTER TABLE "pairing" ADD FOREIGN KEY ("tournamet") REFERENCES "tournament" ("id");
 
-ALTER TABLE "pairing"."team" ADD FOREIGN KEY ("round") REFERENCES "pairing" ("id");
+ALTER TABLE "votes" ADD FOREIGN KEY ("pairing") REFERENCES "pairing" ("id");
 
-ALTER TABLE "pairing"."team" ADD FOREIGN KEY ("school") REFERENCES "school" ("id");
+ALTER TABLE "votes" ADD FOREIGN KEY ("judge") REFERENCES "judge" ("id");
 
-ALTER TABLE "pairing"."debater" ADD FOREIGN KEY ("id") REFERENCES "debater" ("id");
+CREATE TABLE "debater_votes" (
+  "debater_team" text,
+  "votes_team" text,
+  PRIMARY KEY ("debater_team", "votes_team")
+);
 
-ALTER TABLE "pairing"."debater" ADD FOREIGN KEY ("team") REFERENCES "pairing"."team" ("id");
+ALTER TABLE "debater_votes" ADD FOREIGN KEY ("debater_team") REFERENCES "debater" ("team");
 
-ALTER TABLE "pairing"."judge" ADD FOREIGN KEY ("round") REFERENCES "pairing" ("id");
+ALTER TABLE "debater_votes" ADD FOREIGN KEY ("votes_team") REFERENCES "votes" ("team");
 
-ALTER TABLE "pairing"."judge" ADD FOREIGN KEY ("vote") REFERENCES "pairing"."team" ("id");
 
-ALTER TABLE "pairing"."judge" ADD FOREIGN KEY ("judge") REFERENCES "judge" ("id");
+ALTER TABLE "speaker_points" ADD FOREIGN KEY ("pairing") REFERENCES "pairing" ("id");
 
-ALTER TABLE "pairing"."judge" ADD FOREIGN KEY ("school") REFERENCES "school" ("id");
+ALTER TABLE "speaker_points" ADD FOREIGN KEY ("judge") REFERENCES "judge" ("id");
+
+CREATE TABLE "debater_speaker_points" (
+  "debater_team" text,
+  "speaker_points_team" text,
+  PRIMARY KEY ("debater_team", "speaker_points_team")
+);
+
+ALTER TABLE "debater_speaker_points" ADD FOREIGN KEY ("debater_team") REFERENCES "debater" ("team");
+
+ALTER TABLE "debater_speaker_points" ADD FOREIGN KEY ("speaker_points_team") REFERENCES "speaker_points" ("team");
+
+
+CREATE TABLE "debater_speaker_points(1)" (
+  "debater_name" text,
+  "speaker_points_name" text,
+  PRIMARY KEY ("debater_name", "speaker_points_name")
+);
+
+ALTER TABLE "debater_speaker_points(1)" ADD FOREIGN KEY ("debater_name") REFERENCES "debater" ("name");
+
+ALTER TABLE "debater_speaker_points(1)" ADD FOREIGN KEY ("speaker_points_name") REFERENCES "speaker_points" ("name");
+
 
 ALTER TABLE "judge" ADD FOREIGN KEY ("first_name") REFERENCES "gender_binding" ("first_name");
 
 ALTER TABLE "debater" ADD FOREIGN KEY ("first_name") REFERENCES "gender_binding" ("first_name");
+
+ALTER TABLE "debater" ADD FOREIGN KEY ("tournament") REFERENCES "tournament" ("id");

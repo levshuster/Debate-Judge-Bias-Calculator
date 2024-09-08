@@ -47,36 +47,50 @@ Table pairing {
   id integer [primary key]
   division integer [ref: > division.id]
   tournamet integer [ref: > tournament.id]
-  url text
-  timestamp timestamp
+  first_url text
 }
 
-Table pairing.team {
-  id integer [primary key]
-  round integer [ref: > pairing.id]
-  label text [note: "Examples include Aff, Neg, Pro, Con, etc."]
-  school integer [ref: > school.id]
-}
+// Table pairing.team {
+//   id integer [primary key]
+//   round integer [ref: > pairing.id]
+//   label text [note: "Examples include Aff, Neg, Pro, Con, etc."]
+//   // school integer [ref: > school.id]
+// }
 
-Table pairing.debater {
-  id integer [ref: > debater.id]
-  team integer [ref: > pairing.team.id]
-}
+// Table pairing.debater {
+//   id integer [ref: > debater.id]
+//   team integer [ref: > pairing.team.id]
+// }
 
-Table pairing.judge {
-  round integer [ref: > pairing.id]
-  vote integer [ref: >pairing.team.id]
+// Table pairing.judge {
+//   round integer [ref: > pairing.id]
+//   vote integer [ref: >pairing.team.id]
+//   judge integer [ref: > judge.id]
+//   school integer [ref: > school.id]
+// }
+
+Table votes {
+  pairing integer [ref: >pairing.id]
   judge integer [ref: > judge.id]
-  school integer [ref: > school.id]
+  team text [ref: <> debater.team]
+  won bool
 }
 
-Table school {
-  id integer [primary key]
-  name text
-  to_scrape bool
-  url text
-  details json
+Table speaker_points {
+  pairing integer [ref: >pairing.id]
+  judge integer [ref: > judge.id]
+  team text [ref: <> debater.team]
+  name text [ref: <> debater.name]
+  value decimal
 }
+
+// Table school {
+//   id integer [primary key]
+//   name text
+//   to_scrape bool
+//   url text
+//   details json
+// }
 
 
 
@@ -91,9 +105,11 @@ Table judge {
 }
 
 Table debater {
-  id integer [primary key]
+  // id integer [primary key]
+  team text
   name text
   first_name text [ref: > gender_binding.first_name]
+  tournament integer [ref:> tournament.id]
 }
 
 Table gender_binding {
