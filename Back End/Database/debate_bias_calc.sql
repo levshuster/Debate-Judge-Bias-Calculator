@@ -34,9 +34,9 @@ CREATE TABLE "division" (
   "level" text,
   "round" text,
   "is_elimination" bool,
-  "start_date" date,
   "url" text,
-  "details" json
+  "details" json,
+  "to_scrape" bool
 );
 
 CREATE TABLE "pairing" (
