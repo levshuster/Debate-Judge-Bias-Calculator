@@ -1,6 +1,7 @@
 
 import sys
 import os
+import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../Helper Functions/Python/')))
 import scrape_tournament_info
 import scrape_division_info
@@ -95,10 +96,10 @@ if scrape_tournament_info.url_is_in_exspected_format(url):
 
 
 		st.button(
-			label="I this information is correct and would like to upload this tournament the central database",
+			label="I affirm that this information is correct and would like to upload this tournament the central database",
 			on_click=upload_tournament()
 		)
-		st.markdown(f"[Report with this tournament by sending a bug report email containing the issue and URL](mailto:shusterlev@gmail.com)")
+		st.markdown(f"[Report an issue with this tournament by sending a bug report email containing the issue and URL](mailto:shusterlev@gmail.com)")
 
 else:
 	"Please provide a valid link"
@@ -130,3 +131,56 @@ st.dataframe(
 	data=conn.query('SELECT * FROM division;', ttl=0), # type: ignore
 	hide_index=True
 )
+
+"# Pairings"
+
+division_urls_to_process = conn.query(
+"""
+	SELECT
+		division_name,
+		id,
+		tournament,
+		url
+	FROM division
+	WHERE
+		to_scrape = TRUE
+		AND url <> ''
+		AND (
+			division_name LIKE '%LD%'
+			OR division_name LIKE '%Public%'
+			OR division_name LIKE '%CX%'
+		)
+	;
+""", ttl=0) #TODO make better IE filter than just checking if
+
+"# Skipped Rounds:"
+st.write(conn.query(
+"""
+	SELECT
+		*
+	FROM division
+	WHERE url NOT IN (
+		SELECT
+			url
+		FROM division
+		WHERE
+			to_scrape = TRUE
+			AND url <> ''
+			AND (
+				division_name LIKE '%LD%'
+				OR division_name LIKE '%Public%'
+				OR division_name LIKE '%CX%'
+				OR division_name LIKE '%Policy%'
+				OR division_name LIKE '%Lincoln%'
+			)
+	)
+	;
+""", ttl=0))
+division_progress = st.progress(0, "No Divisions Have Been Found that Require Further Processing")
+for count, division_name, id, division_id, url in division_urls_to_process.itertuples():
+	division_progress.progress(count/len(division_urls_to_process), f"Processing Division {division_name} from tournament {division_id}")
+	st.write(f"{id=}, {division_id=}, {url=}")
+	# for each division, find all team URLs
+	# for each division find all judge URLs
+	time.sleep(0.2)
+

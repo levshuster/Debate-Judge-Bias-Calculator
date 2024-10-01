@@ -43,44 +43,43 @@ Table division {
   Note: "Example: Novice Public Forum, Varsity Policy, Open Dramatic Interp"
 }
 
-Table pairing {
-  id integer [primary key]
-  division integer [ref: > division.id]
-  tournamet integer [ref: > tournament.id]
-  first_url text
+// Table pairing {
+//   id integer [primary key]
+//   division integer [ref: > division.id]
+//   tournamet integer [ref: > tournament.id]
+//   first_url text
+// }
+
+Table pairing.team {
+  url text [primary key]
+  to_scrape bool
 }
 
-// Table pairing.team {
-//   id integer [primary key]
-//   round integer [ref: > pairing.id]
-//   label text [note: "Examples include Aff, Neg, Pro, Con, etc."]
-//   // school integer [ref: > school.id]
-// }
+Table pairing.debater {
+  name text
+  school text
+  first_name text [ref: > gender_binding.first_name]
+  team url [ref: > pairing.team.url]
+}
 
-// Table pairing.debater {
-//   id integer [ref: > debater.id]
-//   team integer [ref: > pairing.team.id]
-// }
+Table pairing.judge {
+  url text [primary key]
+  id integer [ref: > judge.id]
+  to_scrape bool
+}
 
-// Table pairing.judge {
-//   round integer [ref: > pairing.id]
-//   vote integer [ref: >pairing.team.id]
-//   judge integer [ref: > judge.id]
-//   school integer [ref: > school.id]
-// }
-
-Table votes {
-  pairing integer [ref: >pairing.id]
-  judge integer [ref: > judge.id]
-  team text [ref: <> debater.team]
+Table pairing.votes {
+  judge text [ref: > pairing.judge.url]
+  team text [ref: <> pairing.team.url]
+  division integer [ref: > division.id]
   won bool
 }
 
-Table speaker_points {
-  pairing integer [ref: >pairing.id]
-  judge integer [ref: > judge.id]
-  team text [ref: <> debater.team]
-  name text [ref: <> debater.name]
+Table pairing.speaker_points {
+  judge text [ref: > pairing.judge.id]
+  team text [ref: <> pairing.debater.team]
+  name text [ref: <> pairing.debater.name]
+  division integer [ref: > division.id]
   value decimal
 }
 
@@ -104,13 +103,13 @@ Table judge {
   details json
 }
 
-Table debater {
-  // id integer [primary key]
-  team text
-  name text
-  first_name text [ref: > gender_binding.first_name]
-  tournament integer [ref:> tournament.id]
-}
+// Table debater {
+//   // id integer [primary key]
+//   team text
+//   name text
+//   first_name text [ref: > gender_binding.first_name]
+//   tournament integer [ref:> tournament.id]
+// }
 
 Table gender_binding {
   first_name text [primary key]
