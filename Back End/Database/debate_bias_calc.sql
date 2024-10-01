@@ -66,7 +66,7 @@ CREATE TABLE "pairing"."debater" (
   "name" text,
   "school" text,
   "first_name" text,
-  "team" url
+  "team" text
 );
 
 CREATE TABLE "pairing"."judge" (
@@ -134,7 +134,7 @@ ALTER TABLE "pairing"."votes" ADD FOREIGN KEY ("division") REFERENCES "division"
 ALTER TABLE "pairing"."speaker_points" ADD FOREIGN KEY ("judge") REFERENCES "pairing"."judge" ("id");
 
 CREATE TABLE "pairing"."debater_speaker_points" (
-  "debater_team" url,
+  "debater_team" text,
   "speaker_points_team" text,
   PRIMARY KEY ("debater_team", "speaker_points_team")
 );

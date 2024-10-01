@@ -9,7 +9,7 @@ import scrape_division_info
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from sqlalchemy import Table, MetaData
+from sqlalchemy import Table, MetaData, select
 
 
 st.set_page_config(layout="wide")
@@ -17,6 +17,8 @@ conn = st.connection("postgresql", type="sql")
 metadata = MetaData()
 tournament_table = Table('tournament', metadata, autoload_with=conn.engine)
 division_table = Table('division', metadata, autoload_with=conn.engine)
+team_table = Table('team', metadata, schema='pairing', autoload_with=conn.engine)
+judge_table = Table('judge', metadata, schema='pairing', autoload_with=conn.engine)
 
 "# Tournaments"
 
@@ -137,8 +139,7 @@ st.dataframe(
 division_urls_to_process = conn.query(
 """
 	SELECT
-		division_name,
-		id,
+		round,
 		tournament,
 		url
 	FROM division
@@ -153,34 +154,78 @@ division_urls_to_process = conn.query(
 	;
 """, ttl=0) #TODO make better IE filter than just checking if
 
-"# Skipped Rounds:"
-st.write(conn.query(
-"""
-	SELECT
-		*
-	FROM division
-	WHERE url NOT IN (
-		SELECT
-			url
-		FROM division
-		WHERE
-			to_scrape = TRUE
-			AND url <> ''
-			AND (
-				division_name LIKE '%LD%'
-				OR division_name LIKE '%Public%'
-				OR division_name LIKE '%CX%'
-				OR division_name LIKE '%Policy%'
-				OR division_name LIKE '%Lincoln%'
-			)
-	)
-	;
-""", ttl=0))
-division_progress = st.progress(0, "No Divisions Have Been Found that Require Further Processing")
-for count, division_name, id, division_id, url in division_urls_to_process.itertuples():
-	division_progress.progress(count/len(division_urls_to_process), f"Processing Division {division_name} from tournament {division_id}")
-	st.write(f"{id=}, {division_id=}, {url=}")
-	# for each division, find all team URLs
-	# for each division find all judge URLs
-	time.sleep(0.2)
+# "# Skipped Rounds:"
+# st.write(conn.query(
+# """
+# 	SELECT
+# 		*
+# 	FROM division
+# 	WHERE to_scrape = TRUE AND url NOT IN (
+# 		SELECT
+# 			url
+# 		FROM division
+# 		WHERE
+# 			to_scrape = TRUE
+# 			AND url <> ''
+# 			AND (
+# 				division_name LIKE '%LD%'
+# 				OR division_name LIKE '%Public%'
+# 				OR division_name LIKE '%CX%'
+# 				OR division_name LIKE '%Policy%'
+# 				OR division_name LIKE '%Lincoln%'
+# 			)
+# 	)
+# 	;
+# """, ttl=0))
 
+division_progress = st.progress(0, "No Divisions Have Been Found that Require Further Processing")
+for count, round, tournament, division_url in division_urls_to_process.itertuples():
+	division_progress.progress(count/len(division_urls_to_process), f"Processing Division {round} from tournament {tournament}")
+	team_urls,judge_urls = scrape_division_info.get_team_and_judge_urls_from_division(division_url)
+	with conn.session as session:
+		for url in team_urls:
+			result = session.execute(
+				select(team_table.c.url).where(team_table.c.url == url)
+			).fetchone()
+			if result is None:
+				session.execute(
+					team_table.insert().values(
+						url=url,
+						to_scrape=True
+					)
+				)
+		for url in judge_urls:
+			result = session.execute(
+				select(judge_table.c.url).where(judge_table.c.url == url)
+			).fetchone()
+			if result is None:
+				session.execute(
+					judge_table.insert().values(
+						url=url,
+						to_scrape=True
+					)
+				)
+
+		session.execute(
+			division_table\
+				.update()\
+				.where(division_table.c.url == division_url)\
+				.values(to_scrape=False)
+		)
+		session.commit()
+
+
+# st.write(conn.query("SELECT * FROM pairing.team;", ttl=0))
+# st.write(conn.query("SELECT * FROM pairing.judge;", ttl=0))
+
+"# Debaters"
+
+# for each entry in pairing.team where to_scrape is true
+# find school name
+# go to url, create a debater for each name
+# mark source team to_scrape as false
+
+"# Judges"
+# for each entry in pairing.judge where to_scrape is true
+# find school name
+# go to url for each round in first table create a vote and a speaker points entry

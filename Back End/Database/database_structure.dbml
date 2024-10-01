@@ -59,7 +59,7 @@ Table pairing.debater {
   name text
   school text
   first_name text [ref: > gender_binding.first_name]
-  team url [ref: > pairing.team.url]
+  team text [ref: > pairing.team.url]
 }
 
 Table pairing.judge {

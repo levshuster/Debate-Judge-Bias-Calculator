@@ -8,8 +8,12 @@ https://wiki.postgresql.org/wiki/Homebrew
 createdb debate_db
 psql -d debate_db
 CREATE USER postgres WITH PASSWORD 'postgres';
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
+ALTER DEFAULT PRIVILEGES IN SCHEMA public;
+GRANT USAGE ON SCHEMA pairing TO postgres;
 GRANT ALL PRIVILEGES ON TABLES TO postgres;
+GRANT SELECT, INSERT ON TABLE pairing.team TO postgres;
+GRANT SELECT, INSERT ON TABLE pairing.judge TO postgres;
+
 \q
 psql -d debate_db -f debate_bias_calc.sql
 

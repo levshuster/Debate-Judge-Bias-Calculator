@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import streamlit as st
 from sqlalchemy import and_
+import urllib
+
 
 
 def parse_division_name(tournament_url, table, session):
@@ -67,3 +69,27 @@ def parse_rounds(division_name, tournament_id, url, table, session):
 			)
 		)
 		session.commit()
+
+def get_team_and_judge_urls_from_division(url):
+	team_urls,judge_urls = [], []
+
+	# Send a GET request to the URL
+	response = requests.get(url)
+
+	# Check if the request was successful
+	if response.status_code == 200:
+		soup = BeautifulSoup(response.text, 'html.parser')
+		links = soup.find_all('a')
+
+		# Loop through all found <a> tags
+		for link in links:
+			href = link.get('href')  # Get the href attribute of each <a> tag
+			if href:  # If href exists, add it to the list of URLs
+				full_url = urllib.parse.urljoin(url, href) # type: ignore
+				if 'entry_record' in full_url:
+					team_urls.append(full_url)
+				elif 'judge.mhtml' in full_url:
+					judge_urls.append(full_url)
+	else:
+		print(f"Failed to retrieve the page. Status code: {response.status_code}")
+	return set(team_urls), set(judge_urls)
