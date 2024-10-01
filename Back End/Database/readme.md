@@ -9,13 +9,12 @@ createdb debate_db
 
 psql -d debate_db -f debate_bias_calc.sql # some unique constraint error are fine here
 
+sudo -u postgres psql -d debate_db
+CREATE USER debate_bias_user WITH PASSWORD 'debate_bias_user';
 
-psql -d debate_db
-CREATE USER postgres WITH PASSWORD 'postgres';
-
-GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres;
-GRANT ALL ON ALL TABLES IN SCHEMA pairing TO postgres;
-GRANT USAGE ON SCHEMA pairing TO postgres;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO debate_bias_user;
+GRANT ALL ON ALL TABLES IN SCHEMA pairing TO debate_bias_user;
+GRANT USAGE ON SCHEMA pairing TO debate_bias_user;
 
 ALTER TABLE pairing.debater DROP CONSTRAINT debater_first_name_fkey;
 
