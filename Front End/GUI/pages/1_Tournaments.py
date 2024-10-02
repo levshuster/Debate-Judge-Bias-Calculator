@@ -5,6 +5,7 @@ import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../Helper Functions/Python/')))
 import scrape_tournament_info
 import scrape_division_info
+import scrape_debaters_and_judges
 
 import streamlit as st
 import pandas as pd
@@ -19,6 +20,7 @@ tournament_table = Table('tournament', metadata, autoload_with=conn.engine)
 division_table = Table('division', metadata, autoload_with=conn.engine)
 team_table = Table('team', metadata, schema='pairing', autoload_with=conn.engine)
 judge_table = Table('judge', metadata, schema='pairing', autoload_with=conn.engine)
+debater_table = Table('debater', metadata, schema='pairing', autoload_with=conn.engine)
 
 "# Tournaments"
 
@@ -44,9 +46,9 @@ and enter it below:
 
 
 url = st.text_input(
-	"",
+	"Tabroom URL",
 	placeholder="https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=...",
-	# on_change=update
+	label_visibility="hidden"
 )
 
 
@@ -180,7 +182,7 @@ division_urls_to_process = conn.query(
 
 division_progress = st.progress(0, "No Divisions Have Been Found that Require Further Processing")
 for count, round, tournament, division_url in division_urls_to_process.itertuples():
-	division_progress.progress(count/len(division_urls_to_process), f"Processing Division {round} from tournament {tournament}")
+	division_progress.progress((count+1)/len(division_urls_to_process), f"Processing Division {round} from tournament {tournament}")
 	team_urls,judge_urls = scrape_division_info.get_team_and_judge_urls_from_division(division_url)
 	with conn.session as session:
 		for url in team_urls:
@@ -219,11 +221,38 @@ for count, round, tournament, division_url in division_urls_to_process.itertuple
 # st.write(conn.query("SELECT * FROM pairing.judge;", ttl=0))
 
 "# Debaters"
+debater_urls_to_process = conn.query(
+"""
+	SELECT
+		url
+	FROM pairing.team
+	WHERE to_scrape = TRUE
+	;
+""", ttl=0)
 
-# for each entry in pairing.team where to_scrape is true
-# find school name
-# go to url, create a debater for each name
-# mark source team to_scrape as false
+debaters_progress = st.progress(0, "No Debaters Have Been Found that Require Further Processing")
+for count, debater_url in debater_urls_to_process.itertuples():
+	debater_names, team_name = scrape_debaters_and_judges.get_debater_and_team_from_url(debater_url)
+	division_progress.progress((count+1)/len(debater_urls_to_process), f"Processing {debater_names[0]} from {team_name}")
+	with conn.session as session:
+		for debater_name in debater_names:
+			session.execute(
+				debater_table.insert().values(
+					name=debater_name,
+					school=team_name,
+					first_name=debater_name.split()[0],
+					team=debater_url,
+				)
+			)
+		session.execute(
+			team_table\
+				.update()\
+				.where(team_table.c.url == debater_url)\
+				.values(to_scrape=False)
+		)
+		session.commit()
+
+st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
 
 "# Judges"
 # for each entry in pairing.judge where to_scrape is true
