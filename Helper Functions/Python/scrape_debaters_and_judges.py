@@ -27,7 +27,7 @@ def get_debater_and_team_from_url(url):
 Vote = namedtuple("Vote", ['judge_id', 'team_link', 'division_id', 'tourn_id', 'won', 'side'])
 Speaker_Points = namedtuple("Speaker_Points", ['judge_id', 'team_link', 'name', 'division_id', 'tourn_id', 'points'])
 
-def get_votes_and_speaker_points_for_a_tournament_from_judge_url(url):
+def get_votes_and_speaker_points_for_a_tournament_from_judge_url(st, url):
 	votes, speaker_points = [], []
 
 	judge_id,tourn_id = url.split("judge_id=")[-1].split('&tourn_id=')
@@ -46,27 +46,37 @@ def get_votes_and_speaker_points_for_a_tournament_from_judge_url(url):
 		division_id = division_link.split("round_id=")[-1].split('&')[0]
 		result = columns[3].text.strip().lower()
 		won = 'w' in result
-		assert(won or 'l' in result)
-
-		votes.append(Vote(
-			judge_id=judge_id,
-			team_link=team_link,
-			division_id=int(division_id),
-			tourn_id=int(tourn_id),
-			won=won,
-			side=columns[1].text.strip().lower()
-		))
-
-		names_and_points = [col.get_text(strip=True).lower() for col in columns[4:]]
-		for name, points in zip(names_and_points[::2], names_and_points[1::2]):
-			speaker_points.append(Speaker_Points(
+		# print("result is ", result)
+		# print(f"because the row is {columns} and the url is {url}")
+		if won or 'l' in result:
+			votes.append(Vote(
 				judge_id=judge_id,
 				team_link=team_link,
-				name=name,
 				division_id=int(division_id),
 				tourn_id=int(tourn_id),
-				points=int(points)
+				won=won,
+				side=columns[1].text.strip().lower()
 			))
+		else:
+			st.write(f"no vote is added for {[column.text.strip() for column in columns]} because it doesn't assign a single winner (congress)")
+
+		names_and_points = [col.get_text(strip=True).lower() for col in columns[4:]]
+		# print(url, names_and_points)
+		for name, points in zip(names_and_points[::2], names_and_points[1::2]):
+				try:
+					assert not name.isNumberic()
+					speaker_points.append(Speaker_Points(
+						judge_id=judge_id,
+						team_link=team_link,
+						name=name,
+						division_id=int(division_id),
+						tourn_id=int(tourn_id),
+						points=float(points)
+					))
+				except ValueError:
+					st.write(f"Skipping {names_and_points} because it is an elim round that doesn't assign speaker points or is inconsistant about the order of speaker points and names ({url})")
+
+
 	return votes, speaker_points
 
 # votes, speaker_points = get_votes_and_speaker_points_for_a_tournament_from_judge_url('https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id=1985775&tourn_id=26620')

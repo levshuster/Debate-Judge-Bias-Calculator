@@ -261,13 +261,15 @@ for count, debater_url in debater_urls_to_process.itertuples():
 st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
 
 "# Judges"
+st.write(conn.query("SELECT * FROM pairing.judge;", ttl=0))
 
 judge_urls_to_process = conn.query("SELECT url FROM pairing.judge WHERE to_scrape = TRUE;", ttl=0)
 
 judges_progress = st.progress(0, "No Judges Have Been Found that Require Further Processing")
+warnings = st.expander("See Exceptions", icon='⚠️')
 for count, judges_url in judge_urls_to_process.itertuples():
 	division_progress.progress((count+1)/len(judge_urls_to_process), f"Processing {judges_url}")
-	votes, speaker_points = scrape_debaters_and_judges.get_votes_and_speaker_points_for_a_tournament_from_judge_url('https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id=1985775&tourn_id=26620')
+	votes, speaker_points = scrape_debaters_and_judges.get_votes_and_speaker_points_for_a_tournament_from_judge_url(warnings, judges_url)
 	with conn.session as session:
 		# stopped here, need to insert all votes and speaker points then set the judge to scraped
 		for vote in votes:

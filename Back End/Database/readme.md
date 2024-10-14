@@ -38,27 +38,3 @@ VALUES
 `psql -d debate_db`
 `dropdb debate_db`
 `psql -d debate_db -f ../../../Back\ End/Database/debate_bias_calc.sql`
-
-```sql
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA public;
-GRANT USAGE ON SCHEMA pairing TO postgres;
-GRANT ALL PRIVILEGES ON TABLES TO postgres;
-
-
-psql -d debate_db
-
-GRANT SELECT, INSERT, UPDATE ON TABLE pairing.team TO postgres;
-GRANT SELECT, INSERT, UPDATE ON TABLE pairing.judge TO postgres;
-GRANT SELECT, INSERT, UPDATE ON TABLE pairing.debater TO postgres;
-ALTER TABLE pairing.debater DROP CONSTRAINT debater_first_name_fkey;
-
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT ALL ON TABLES TO postgres;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA pairing
-GRANT ALL ON TABLES TO postgres;
-
-\q
-```
