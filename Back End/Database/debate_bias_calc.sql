@@ -79,14 +79,17 @@ CREATE TABLE "pairing"."votes" (
   "judge" text,
   "team" text,
   "division" integer,
-  "won" bool
+  "tournament" integer,
+  "won" bool,
+  "side" text
 );
 
 CREATE TABLE "pairing"."speaker_points" (
   "judge" text,
   "team" text,
-  "name" text,
+  "partial_name" text,
   "division" integer,
+  "tournament" integer,
   "value" decimal
 );
 
@@ -101,6 +104,8 @@ COMMENT ON COLUMN "division"."format" IS 'Policy, LD, Public Forum';
 COMMENT ON COLUMN "division"."level" IS 'Open, Novice, Varsity';
 
 COMMENT ON COLUMN "division"."round" IS 'Semi-Final, Round 1, 3';
+
+COMMENT ON TABLE "pairing"."speaker_points" IS 'Partial name is most often just the debater last name, so JOIN pairing.debater ON team=team and partial_name IN name';
 
 ALTER TABLE "tournament_group"."details" ADD FOREIGN KEY ("parent_group") REFERENCES "tournament_group"."details" ("id");
 
@@ -131,6 +136,8 @@ ALTER TABLE "pairing"."team_votes" ADD FOREIGN KEY ("votes_team") REFERENCES "pa
 
 ALTER TABLE "pairing"."votes" ADD FOREIGN KEY ("division") REFERENCES "division" ("id");
 
+ALTER TABLE "pairing"."votes" ADD FOREIGN KEY ("tournament") REFERENCES "tournament" ("id");
+
 ALTER TABLE "pairing"."speaker_points" ADD FOREIGN KEY ("judge") REFERENCES "pairing"."judge" ("id");
 
 CREATE TABLE "pairing"."debater_speaker_points" (
@@ -146,15 +153,17 @@ ALTER TABLE "pairing"."debater_speaker_points" ADD FOREIGN KEY ("speaker_points_
 
 CREATE TABLE "pairing"."debater_speaker_points(1)" (
   "debater_name" text,
-  "speaker_points_name" text,
-  PRIMARY KEY ("debater_name", "speaker_points_name")
+  "speaker_points_partial_name" text,
+  PRIMARY KEY ("debater_name", "speaker_points_partial_name")
 );
 
 ALTER TABLE "pairing"."debater_speaker_points(1)" ADD FOREIGN KEY ("debater_name") REFERENCES "pairing"."debater" ("name");
 
-ALTER TABLE "pairing"."debater_speaker_points(1)" ADD FOREIGN KEY ("speaker_points_name") REFERENCES "pairing"."speaker_points" ("name");
+ALTER TABLE "pairing"."debater_speaker_points(1)" ADD FOREIGN KEY ("speaker_points_partial_name") REFERENCES "pairing"."speaker_points" ("partial_name");
 
 
 ALTER TABLE "pairing"."speaker_points" ADD FOREIGN KEY ("division") REFERENCES "division" ("id");
+
+ALTER TABLE "pairing"."speaker_points" ADD FOREIGN KEY ("tournament") REFERENCES "tournament" ("id");
 
 ALTER TABLE "judge" ADD FOREIGN KEY ("first_name") REFERENCES "gender_binding" ("first_name");

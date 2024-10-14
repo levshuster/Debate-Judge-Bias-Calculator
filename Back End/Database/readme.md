@@ -17,6 +17,8 @@ GRANT ALL ON ALL TABLES IN SCHEMA pairing TO debate_bias_user;
 GRANT USAGE ON SCHEMA pairing TO debate_bias_user;
 
 ALTER TABLE pairing.debater DROP CONSTRAINT debater_first_name_fkey;
+ALTER TABLE pairing.judge DROP CONSTRAINT judge_id_fkey;
+# TODO: ADD ALTER TABLE pairing.speaker_points DROP CONSTRAINT debater_id_fkey;
 
 \q
 

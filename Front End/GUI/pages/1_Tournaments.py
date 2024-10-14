@@ -2,7 +2,9 @@
 import sys
 import os
 import time
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../Helper Functions/Python/')))
+
 import scrape_tournament_info
 import scrape_division_info
 import scrape_debaters_and_judges
@@ -204,7 +206,8 @@ for count, round, tournament, division_url in division_urls_to_process.itertuple
 				session.execute(
 					judge_table.insert().values(
 						url=url,
-						to_scrape=True
+						to_scrape=True,
+						id=url.split("judge_id=")[-1].split("&")[0]
 					)
 				)
 
@@ -255,6 +258,34 @@ for count, debater_url in debater_urls_to_process.itertuples():
 st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
 
 "# Judges"
+
+judge_urls_to_process = conn.query("SELECT url FROM pairing.judge WHERE to_scrape = TRUE;", ttl=0)
+
+judges_progress = st.progress(0, "No Judges Have Been Found that Require Further Processing")
+for count, judges_url in judge_urls_to_process.itertuples():
+	division_progress.progress((count+1)/len(judge_urls_to_process), f"Processing {judges_url}")
+	votes, speaker_points = scrape_debaters_and_judges.get_votes_and_speaker_points_for_a_tournament_from_judge_url('https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id=1985775&tourn_id=26620')
+	with conn.session as session:
+		# stopped here, need to insert all votes and speaker points then set the judge to scraped
+# 		for debater_name in debater_names:
+# 			session.execute(
+# 				debater_table.insert().values(
+# 					name=debater_name,
+# 					school=team_name,
+# 					first_name=debater_name.split()[0],
+# 					team=debater_url,
+# 				)
+# 			)
+# 		session.execute(
+# 			team_table\
+# 				.update()\
+# 				.where(team_table.c.url == debater_url)\
+# 				.values(to_scrape=False)
+# 		)
+# 		session.commit()
+
+# st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
+
 # for each entry in pairing.judge where to_scrape is true
 # find school name
 # go to url for each round in first table create a vote and a speaker points entry

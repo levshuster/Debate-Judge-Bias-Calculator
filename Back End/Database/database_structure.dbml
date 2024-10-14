@@ -72,15 +72,19 @@ Table pairing.votes {
   judge text [ref: > pairing.judge.url]
   team text [ref: <> pairing.team.url]
   division integer [ref: > division.id]
+  tournament integer [ref: > tournament.id]
   won bool
+  side text
 }
 
 Table pairing.speaker_points {
   judge text [ref: > pairing.judge.id]
   team text [ref: <> pairing.debater.team]
-  name text [ref: <> pairing.debater.name]
+  partial_name text [ref: <> pairing.debater.name]
   division integer [ref: > division.id]
+  tournament integer [ref: > tournament.id]
   value decimal
+  Note: "Partial name is most often just the debater last name, so JOIN pairing.debater ON team=team and partial_name IN name"
 }
 
 // Table school {
