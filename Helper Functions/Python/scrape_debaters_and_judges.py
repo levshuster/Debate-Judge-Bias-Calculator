@@ -24,10 +24,10 @@ def get_debater_and_team_from_url(url):
 	return debater_names, team_name
 
 # get_debater_and_team_from_url(url)
+Vote = namedtuple("Vote", ['judge_id', 'team_link', 'division_id', 'tourn_id', 'won', 'side'])
+Speaker_Points = namedtuple("Speaker_Points", ['judge_id', 'team_link', 'name', 'division_id', 'tourn_id', 'points'])
 
 def get_votes_and_speaker_points_for_a_tournament_from_judge_url(url):
-	Vote = namedtuple("Vote", ['judge_id', 'team_link', 'division_id', 'tourn_id', 'won', 'side'])
-	Speaker_Points = namedtuple("Speaker_Points", ['judge_id', 'team_link', 'name', 'division_id', 'tourn_id', 'points'])
 	votes, speaker_points = [], []
 
 	judge_id,tourn_id = url.split("judge_id=")[-1].split('&tourn_id=')
@@ -51,8 +51,8 @@ def get_votes_and_speaker_points_for_a_tournament_from_judge_url(url):
 		votes.append(Vote(
 			judge_id=judge_id,
 			team_link=team_link,
-			division_id=division_id,
-			tourn_id=tourn_id,
+			division_id=int(division_id),
+			tourn_id=int(tourn_id),
 			won=won,
 			side=columns[1].text.strip().lower()
 		))
@@ -63,9 +63,9 @@ def get_votes_and_speaker_points_for_a_tournament_from_judge_url(url):
 				judge_id=judge_id,
 				team_link=team_link,
 				name=name,
-				division_id=division_id,
-				tourn_id=tourn_id,
-				points=points
+				division_id=int(division_id),
+				tourn_id=int(tourn_id),
+				points=int(points)
 			))
 	return votes, speaker_points
 

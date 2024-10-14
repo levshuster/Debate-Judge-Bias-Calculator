@@ -16,6 +16,7 @@ from sqlalchemy import Table, MetaData, select
 
 
 st.set_page_config(layout="wide")
+
 conn = st.connection("postgresql", type="sql")
 metadata = MetaData()
 tournament_table = Table('tournament', metadata, autoload_with=conn.engine)
@@ -23,6 +24,8 @@ division_table = Table('division', metadata, autoload_with=conn.engine)
 team_table = Table('team', metadata, schema='pairing', autoload_with=conn.engine)
 judge_table = Table('judge', metadata, schema='pairing', autoload_with=conn.engine)
 debater_table = Table('debater', metadata, schema='pairing', autoload_with=conn.engine)
+votes_table = Table('votes', metadata, schema='pairing', autoload_with=conn.engine)
+points_table = Table('speaker_points', metadata, schema='pairing', autoload_with=conn.engine)
 
 "# Tournaments"
 
@@ -267,25 +270,35 @@ for count, judges_url in judge_urls_to_process.itertuples():
 	votes, speaker_points = scrape_debaters_and_judges.get_votes_and_speaker_points_for_a_tournament_from_judge_url('https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id=1985775&tourn_id=26620')
 	with conn.session as session:
 		# stopped here, need to insert all votes and speaker points then set the judge to scraped
-# 		for debater_name in debater_names:
-# 			session.execute(
-# 				debater_table.insert().values(
-# 					name=debater_name,
-# 					school=team_name,
-# 					first_name=debater_name.split()[0],
-# 					team=debater_url,
-# 				)
-# 			)
-# 		session.execute(
-# 			team_table\
-# 				.update()\
-# 				.where(team_table.c.url == debater_url)\
-# 				.values(to_scrape=False)
-# 		)
-# 		session.commit()
+		for vote in votes:
+			session.execute(
+				votes_table.insert().values(
+					judge=vote.judge_id,
+					team=vote.team_link,
+					division=vote.division_id,
+					tournament=vote.tourn_id,
+					won=vote.won,
+					side=vote.side
+				)
+			)
+		for point in speaker_points:
+			session.execute(
+				points_table.insert().values(
+					judge=point.judge_id,
+					team=point.team_link,
+					partial_name=point.name,
+					division=point.division_id,
+					tournament=point.tourn_id,
+					value=point.points,
+				)
+			)
+		session.execute(
+			judge_table\
+				.update()\
+				.where(judge_table.c.url == judges_url)\
+				.values(to_scrape=False)
+		)
+		session.commit()
 
-# st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
-
-# for each entry in pairing.judge where to_scrape is true
-# find school name
-# go to url for each round in first table create a vote and a speaker points entry
+st.write(conn.query("SELECT * FROM pairing.votes;", ttl=0))
+st.write(conn.query("SELECT * FROM pairing.speaker_points;", ttl=0))
