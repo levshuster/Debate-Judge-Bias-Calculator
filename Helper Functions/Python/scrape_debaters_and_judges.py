@@ -18,9 +18,10 @@ def get_debater_and_team_from_url(url):
 		.join(team_name.split())
 		.split(':')[0] # If team name is SCHOOL: DEBATER, DEBATER then return SCHOOL
 		.split(debater_names[0])[0] # If team name is SCHOOL: FIRST DEBATER FIRST NAME... return SCHOOL
-		.split(debater_names[1])[0] # If team name is SCHOOL: SECOND DEBATER FIRST NAME... return SCHOOL
+		.split(debater_names[1] if len(debater_names) > 1 else "~~~")[0] # If team name is SCHOOL: SECOND DEBATER FIRST NAME... return SCHOOL
 		.split(debater_names[0].split()[-1])[0]  # if team name is SCHOOL: LAST NAME... return school
 	)
+
 	return debater_names, team_name
 
 # get_debater_and_team_from_url(url)

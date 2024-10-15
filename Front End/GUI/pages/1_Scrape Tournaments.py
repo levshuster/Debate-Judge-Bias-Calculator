@@ -120,6 +120,7 @@ else:
 
 tournament_urls_to_process = conn.query('SELECT url, name FROM tournament WHERE to_scrape = TRUE;', ttl=0)
 
+
 tournament_progress = st.progress(0, "No Tournaments Have Been Found that Require Further Processing")
 for tournament in tournament_urls_to_process.itertuples():
 	tournament_progress.progress((tournament[0])/len(tournament_urls_to_process), f"Processing Tournament {tournament[2]}")
@@ -156,13 +157,16 @@ division_urls_to_process = conn.query(
 	WHERE
 		to_scrape = TRUE
 		AND url <> ''
-		AND (
-			division_name LIKE '%LD%'
-			OR division_name LIKE '%Public%'
-			OR division_name LIKE '%CX%'
-		)
 	;
-""", ttl=0) #TODO make better IE filter than just checking if
+""", ttl=0)
+# 		AND (
+# 			division_name LIKE '%LD%'
+# 			division_name LIKE '%Lincoln%'
+# 			OR division_name LIKE '%Public%'
+# 			OR division_name LIKE '%CX%'
+# 		)
+# 	;
+# """, ttl=0) #TODO make better IE filter than just checking if
 
 # "# Skipped Rounds:"
 # st.write(conn.query(
@@ -238,6 +242,8 @@ debater_urls_to_process = conn.query(
 	WHERE to_scrape = TRUE
 	;
 """, ttl=0)
+
+debater_urls_to_process
 
 debaters_progress = st.progress(0, "No Debaters Have Been Found that Require Further Processing")
 for count, debater_url in debater_urls_to_process.itertuples():
