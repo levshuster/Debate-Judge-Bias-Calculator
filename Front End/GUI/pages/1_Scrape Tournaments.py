@@ -14,8 +14,11 @@ import pandas as pd
 from datetime import datetime
 from sqlalchemy import Table, MetaData, select
 
-
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="Debate Bias Calc",
+    page_icon="🗣",
+	layout="wide"
+)
 
 conn = st.connection("postgresql", type="sql")
 metadata = MetaData()

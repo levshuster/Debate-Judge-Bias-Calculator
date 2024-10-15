@@ -64,7 +64,7 @@ def get_votes_and_speaker_points_for_a_tournament_from_judge_url(st, url):
 		# print(url, names_and_points)
 		for name, points in zip(names_and_points[::2], names_and_points[1::2]):
 				try:
-					assert not name.isNumberic()
+					assert not name.isnumeric()
 					speaker_points.append(Speaker_Points(
 						judge_id=judge_id,
 						team_link=team_link,
@@ -75,7 +75,8 @@ def get_votes_and_speaker_points_for_a_tournament_from_judge_url(st, url):
 					))
 				except ValueError:
 					st.write(f"Skipping {names_and_points} because it is an elim round that doesn't assign speaker points or is inconsistant about the order of speaker points and names ({url})")
-
+				except AssertionError:
+					st.write(f"Skipping {names_and_points} because the speaker points are where a name should be ({url})")
 
 	return votes, speaker_points
 

@@ -69,7 +69,7 @@ Table pairing.judge {
 }
 
 Table pairing.votes {
-  judge text [ref: > pairing.judge.url]
+  judge integer [ref: > pairing.judge.url]
   team text [ref: <> pairing.team.url]
   division integer [ref: > division.id]
   tournament integer [ref: > tournament.id]
@@ -78,7 +78,7 @@ Table pairing.votes {
 }
 
 Table pairing.speaker_points {
-  judge text [ref: > pairing.judge.id]
+  judge integer [ref: > pairing.judge.id]
   team text [ref: <> pairing.debater.team]
   partial_name text [ref: <> pairing.debater.name]
   division integer [ref: > division.id]

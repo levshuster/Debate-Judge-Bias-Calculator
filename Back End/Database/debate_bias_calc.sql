@@ -76,7 +76,7 @@ CREATE TABLE "pairing"."judge" (
 );
 
 CREATE TABLE "pairing"."votes" (
-  "judge" text,
+  "judge" integer,
   "team" text,
   "division" integer,
   "tournament" integer,
@@ -85,7 +85,7 @@ CREATE TABLE "pairing"."votes" (
 );
 
 CREATE TABLE "pairing"."speaker_points" (
-  "judge" text,
+  "judge" integer,
   "team" text,
   "partial_name" text,
   "division" integer,
