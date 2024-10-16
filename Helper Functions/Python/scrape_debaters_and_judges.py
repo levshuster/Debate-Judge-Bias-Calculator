@@ -9,6 +9,9 @@ def get_debater_and_team_from_url(url):
 	soup = BeautifulSoup(html_content, 'html.parser')
 
 	debater_info = soup.find('span', class_='twothirds nospace')
+	if debater_info is None:
+		print(f"{url} is a private round so it not added to db")
+		return [], None
 	debater_names = debater_info.find('h4', class_='nospace semibold').text.strip()
 	team_name = debater_info.find('h6', class_='full nospace martop semibold bluetext').text.strip()
 

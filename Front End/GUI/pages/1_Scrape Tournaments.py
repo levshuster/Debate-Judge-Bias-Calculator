@@ -248,24 +248,25 @@ debater_urls_to_process
 debaters_progress = st.progress(0, "No Debaters Have Been Found that Require Further Processing")
 for count, debater_url in debater_urls_to_process.itertuples():
 	debater_names, team_name = scrape_debaters_and_judges.get_debater_and_team_from_url(debater_url)
-	division_progress.progress((count+1)/len(debater_urls_to_process), f"Processing {debater_names[0]} from {team_name}")
-	with conn.session as session:
-		for debater_name in debater_names:
-			session.execute(
-				debater_table.insert().values(
-					name=debater_name,
-					school=team_name,
-					first_name=debater_name.split()[0],
-					team=debater_url,
+	if team_name != None and debater_name != []:
+		debaters_progress.progress((count+1)/len(debater_urls_to_process), f"Processing {debater_names[0]} from {team_name}")
+		with conn.session as session:
+			for debater_name in debater_names:
+				session.execute(
+					debater_table.insert().values(
+						name=debater_name,
+						school=team_name,
+						first_name=debater_name.split()[0],
+						team=debater_url,
+					)
 				)
+			session.execute(
+				team_table\
+					.update()\
+					.where(team_table.c.url == debater_url)\
+					.values(to_scrape=False)
 			)
-		session.execute(
-			team_table\
-				.update()\
-				.where(team_table.c.url == debater_url)\
-				.values(to_scrape=False)
-		)
-		session.commit()
+			session.commit()
 
 st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
 

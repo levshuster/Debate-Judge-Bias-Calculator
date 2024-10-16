@@ -22,6 +22,7 @@ GRANT USAGE ON SCHEMA pairing TO debate_bias_user;
 ALTER TABLE pairing.debater DROP CONSTRAINT debater_first_name_fkey;
 ALTER TABLE pairing.judge DROP CONSTRAINT judge_id_fkey;
 ALTER TABLE pairing.votes DROP CONSTRAINT votes_judge_fkey;
+ALTER TABLE judge DROP CONSTRAINT judge_first_name_fkey;
 
 \q
 
