@@ -2,6 +2,9 @@
 
 https://wiki.postgresql.org/wiki/Homebrew
 
+# Start postgres Service
+Linux - `sudo service postgresql start`
+
 # Load Database Schema
 
 ```bash

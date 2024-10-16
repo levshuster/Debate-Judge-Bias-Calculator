@@ -1,0 +1,9 @@
+scrape all judges at tournament
+search for judges
+search for tournaments
+Rank judges at tournament
+Compare tournaments
+Compare Leagues
+Make Tournament Groups (leagues, geography, years)
+Compare Divisions within leagues
+Rentention rate

@@ -26,6 +26,7 @@ Table tournament {
   updated timestamp
   details json
   to_scrape bool
+  leaf bool [note: 'to_scrape is false and leaf is true IFF tournament has never been scraped but is refered to by a round that came up when scraping a judge']
   Note: "Examples: UPS invitational, Rose City Round Robin, etc."
 }
 
@@ -38,17 +39,12 @@ Table division {
   round text [note: "Semi-Final, Round 1, 3"]
   is_elimination bool
   url text
+  date datetime
   details json
   to_scrape bool
+  leaf bool [note: 'to_scrape is false and leaf is true IFF division has never been scraped but is refered to by a round that came up when scraping a judge']
   Note: "Example: Novice Public Forum, Varsity Policy, Open Dramatic Interp"
 }
-
-// Table pairing {
-//   id integer [primary key]
-//   division integer [ref: > division.id]
-//   tournamet integer [ref: > tournament.id]
-//   first_url text
-// }
 
 Table pairing.team {
   url text [primary key]
@@ -87,16 +83,6 @@ Table pairing.speaker_points {
   Note: "Partial name is most often just the debater last name, so JOIN pairing.debater ON team=team and partial_name IN name"
 }
 
-// Table school {
-//   id integer [primary key]
-//   name text
-//   to_scrape bool
-//   url text
-//   details json
-// }
-
-
-
 Table judge {
   id integer [primary key]
   name text
@@ -106,14 +92,6 @@ Table judge {
   updated timestamp
   details json
 }
-
-// Table debater {
-//   // id integer [primary key]
-//   team text
-//   name text
-//   first_name text [ref: > gender_binding.first_name]
-//   tournament integer [ref:> tournament.id]
-// }
 
 Table gender_binding {
   first_name text [primary key]

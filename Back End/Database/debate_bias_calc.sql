@@ -23,7 +23,8 @@ CREATE TABLE "tournament" (
   "url" text,
   "updated" timestamp,
   "details" json,
-  "to_scrape" bool
+  "to_scrape" bool,
+  "leaf" bool
 );
 
 CREATE TABLE "division" (
@@ -35,8 +36,10 @@ CREATE TABLE "division" (
   "round" text,
   "is_elimination" bool,
   "url" text,
+  "date" datetime,
   "details" json,
-  "to_scrape" bool
+  "to_scrape" bool,
+  "leaf" bool
 );
 
 CREATE TABLE "judge" (
@@ -97,6 +100,8 @@ COMMENT ON TABLE "tournament_group"."details" IS 'Examples: Washington State, TO
 
 COMMENT ON TABLE "tournament" IS 'Examples: UPS invitational, Rose City Round Robin, etc.';
 
+COMMENT ON COLUMN "tournament"."leaf" IS 'to_scrape is false and leaf is true IFF tournament has never been scraped but is refered to by a round that came up when scraping a judge';
+
 COMMENT ON TABLE "division" IS 'Example: Novice Public Forum, Varsity Policy, Open Dramatic Interp';
 
 COMMENT ON COLUMN "division"."format" IS 'Policy, LD, Public Forum';
@@ -104,6 +109,8 @@ COMMENT ON COLUMN "division"."format" IS 'Policy, LD, Public Forum';
 COMMENT ON COLUMN "division"."level" IS 'Open, Novice, Varsity';
 
 COMMENT ON COLUMN "division"."round" IS 'Semi-Final, Round 1, 3';
+
+COMMENT ON COLUMN "division"."leaf" IS 'to_scrape is false and leaf is true IFF division has never been scraped but is refered to by a round that came up when scraping a judge';
 
 COMMENT ON TABLE "pairing"."speaker_points" IS 'Partial name is most often just the debater last name, so JOIN pairing.debater ON team=team and partial_name IN name';
 

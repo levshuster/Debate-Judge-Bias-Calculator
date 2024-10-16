@@ -2,6 +2,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../Helper Functions/Python/')))
+import scrape_judge
 
 from bs4 import BeautifulSoup
 import requests
@@ -34,30 +35,7 @@ side_bias_tab, gender_bias_tab, tabroom_tab = st.tabs(["Aff Neg Bias", "Gender B
 
 
 with tabroom_tab:
-	if url:
-		try:
-			response = requests.get(url)
-			response.raise_for_status()  # Check for request errors
-			soup = BeautifulSoup(response.text, 'html.parser')
-			# Find and remove the <header> tag if it exists
-			header = soup.find('header')
-			if header:
-				soup = header.extract()  # Remove the header tag and its contents
-
-			tabs = soup.find('ul', id='tabnav')
-			if tabs:
-				tabs.extract()
-			else: print("no tabnav found")
-
-			# menu = soup.find(class_='sidenote')
-			menu = soup.find(class_='main')
-			if menu:
-				soup = menu.extract()
-
-			st.html(str(soup))
-
-		except requests.exceptions.RequestException as e:
-			st.error(f"An error occurred: {e}")
+	scrape_judge.display_judges_tabroom_page(st, url)
 
 with side_bias_tab:
 	df = conn.query(f'''
