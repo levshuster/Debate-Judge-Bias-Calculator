@@ -11,8 +11,10 @@ Linux - `sudo service postgresql start`
 createdb debate_db
 
 psql -d debate_db -f debate_bias_calc.sql # some unique constraint error are fine here
+psql -d debate_db -c "\copy gender_binding FROM '../../Helper Functions/Python/Scratch Work/Gender Analysis/gender_compendium.csv' WITH (FORMAT CSV, HEADER)"
 
 sudo -u postgres psql -d debate_db
+
 CREATE USER debate_bias_user WITH PASSWORD 'debate_bias_user';
 
 GRANT ALL ON ALL TABLES IN SCHEMA public TO debate_bias_user;
@@ -26,16 +28,6 @@ ALTER TABLE judge DROP CONSTRAINT judge_first_name_fkey;
 
 \q
 
-
-```
-
-# load in bogus data
-
-```psql
-INSERT INTO tournament (id, name, url, updated, details, to_scrape)
-VALUES
-    (1, 'Bogus Invitational', 'https://www.example.com/tournament/1', CURRENT_TIMESTAMP, '{"location": "Example City", "date": "2024-10-01"}', FALSE),
-    (2, 'Fictional Championship', 'https://www.example.com/tournament/2', CURRENT_TIMESTAMP, '{"location": "Sample Town", "date": "2024-11-15"}', FALSE);
 ```
 
 # Other Useful Commands

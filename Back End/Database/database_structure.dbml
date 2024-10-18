@@ -39,7 +39,7 @@ Table division {
   round text [note: "Semi-Final, Round 1, 3"]
   is_elimination bool
   url text
-  date datetime
+  date timestamp
   details json
   to_scrape bool
   leaf bool [note: 'to_scrape is false and leaf is true IFF division has never been scraped but is refered to by a round that came up when scraping a judge']
@@ -65,7 +65,7 @@ Table pairing.judge {
 }
 
 Table pairing.votes {
-  judge integer [ref: > pairing.judge.url]
+  judge text [ref: > pairing.judge.url]
   team text [ref: <> pairing.team.url]
   division integer [ref: > division.id]
   tournament integer [ref: > tournament.id]
@@ -95,8 +95,6 @@ Table judge {
 
 Table gender_binding {
   first_name text [primary key]
-  gender text
-  confidance decimal
-  updated timestamp
-  source text
+  male_count integer
+  female_count integer
 }

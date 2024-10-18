@@ -248,7 +248,7 @@ debater_urls_to_process
 debaters_progress = st.progress(0, "No Debaters Have Been Found that Require Further Processing")
 for count, debater_url in debater_urls_to_process.itertuples():
 	debater_names, team_name = scrape_debaters_and_judges.get_debater_and_team_from_url(debater_url)
-	if team_name != None and debater_name != []:
+	if team_name != None and debater_names != []:
 		debaters_progress.progress((count+1)/len(debater_urls_to_process), f"Processing {debater_names[0]} from {team_name}")
 		with conn.session as session:
 			for debater_name in debater_names:
