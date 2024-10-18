@@ -12,6 +12,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from sqlalchemy import Table, MetaData, select
+from sqlalchemy.dialects.postgresql import insert
+
 
 st.set_page_config(
     page_title="Debate Bias Calc",
@@ -155,7 +157,7 @@ if should_scrape:
 						debater_table.insert().values(
 							name=debater_name,
 							school=team_name,
-							first_name=debater_name.split()[0],
+							first_name=lower(debater_name.split()[0]),
 							team=debater_url,
 						)
 					)
@@ -170,14 +172,63 @@ if should_scrape:
 	st.write(conn.query("SELECT * FROM pairing.debater;", ttl=0))
 
 	st.write("# Scraping Votes")
-	# get all tournament_id from debater_urls_to_process
-	# get all judge URLS for this judge+tournament_id
-	# create pairing.judge for each url
-	# create vote and speaker points for each to_scrape pairing.judge
+	judge_urls_to_process = [
+		f'https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id={id}&tourn_id={tournament_id}'
+		for tournament_id in scrape_judge.get_tournament_ids_from_judge(url)
+	]
+
+
+	judges_progress = st.progress(0, "No tournaments Have Been Found that Require Further Processing")
+	warnings = st.expander("See Exceptions", icon='⚠️')
+	for count, judges_url in enumerate(judge_urls_to_process):
+		judges_progress.progress((count+1)/len(judge_urls_to_process), f"Processing {judges_url}")
+		votes, speaker_points = scrape_debaters_and_judges.get_votes_and_speaker_points_for_a_tournament_from_judge_url(warnings, judges_url)
+		with conn.session as session:
+			result = session.execute(
+				select(judge_table.c.url).where(judge_table.c.url == judges_url)
+			).fetchone()
+			if result is None:
+				session.execute(
+					judge_table.insert().values(
+						url=judges_url,
+						to_scrape=False,
+						id=id
+					)
+				)
+				for vote in votes:
+					session.execute(
+						votes_table.insert().values(
+							judge=vote.judge_id,
+							team=vote.team_link,
+							division=vote.division_id,
+							tournament=vote.tourn_id,
+							won=vote.won,
+							side=vote.side
+						)
+					)
+				for point in speaker_points:
+					session.execute(
+						points_table.insert().values(
+							judge=point.judge_id,
+							team=point.team_link,
+							partial_name=point.name,
+							division=point.division_id,
+							tournament=point.tourn_id,
+							value=point.points,
+						)
+					)
+				session.commit()
+
+	st.write(conn.query(f"SELECT * FROM pairing.votes WHERE judge LIKE '%{id}%';", ttl=0))
+	st.write(conn.query(f"SELECT * FROM pairing.speaker_points WHERE judge LIKE '%{id}%';", ttl=0))
 
 	st.write("# Scraping Relivant Tournament Details")
 	# Scrape tournament for each tournament URL while setting leaf to TRUE
+	# 	judge_urls_to_process = [
+	# 	f'https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id={id}&tourn_id={tournament_id}'
+	# 	for tournament_id in scrape_judge.get_tournament_ids_from_judge(url)
+	# ]
 	st.write("# Scraping Division details")
 	# scrape divisions for each tournament URL while setting leaf to TRUE
-# else:
-# 	"Please provide a valid link"
+else:
+	"Please provide a valid link"

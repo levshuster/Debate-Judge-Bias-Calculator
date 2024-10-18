@@ -64,3 +64,14 @@ def get_team_urls(url):
 
 
 # get_team_urls('https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id=1985775&tourn_id=26620')
+
+def get_tournament_ids_from_judge(url):
+	soup = BeautifulSoup(requests.get(url).text, 'html.parser')
+	return set(
+		link.get('href').split('tourn_id=')[-1].split('&')[0]
+		for link in soup.find_all('a')
+		if link.get('href') if 'tourn_id=' in link.get('href')
+	)
+
+# print(get_tournament_ids_from_judge('https://www.tabroom.com/index/tourn/postings/judge.mhtml?judge_id=2118573&tourn_id=29348'))
+

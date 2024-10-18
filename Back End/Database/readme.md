@@ -25,6 +25,8 @@ ALTER TABLE pairing.debater DROP CONSTRAINT debater_first_name_fkey;
 ALTER TABLE pairing.judge DROP CONSTRAINT judge_id_fkey;
 ALTER TABLE pairing.votes DROP CONSTRAINT votes_judge_fkey;
 ALTER TABLE judge DROP CONSTRAINT judge_first_name_fkey;
+ALTER TABLE pairing.votes DROP CONSTRAINT votes_tournament_fkey;
+ALTER TABLE pairing.speaker_points DROP CONSTRAINT speaker_points_tournament_fkey;
 
 \q
 
