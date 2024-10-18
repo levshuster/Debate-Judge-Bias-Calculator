@@ -36,7 +36,7 @@ CREATE TABLE "division" (
   "round" text,
   "is_elimination" bool,
   "url" text,
-  "date" datetime,
+  "date" timestamp,
   "details" json,
   "to_scrape" bool,
   "leaf" bool
@@ -54,10 +54,8 @@ CREATE TABLE "judge" (
 
 CREATE TABLE "gender_binding" (
   "first_name" text PRIMARY KEY,
-  "gender" text,
-  "confidance" decimal,
-  "updated" timestamp,
-  "source" text
+  "male_count" integer,
+  "female_count" integer
 );
 
 CREATE TABLE "pairing"."team" (
@@ -79,7 +77,7 @@ CREATE TABLE "pairing"."judge" (
 );
 
 CREATE TABLE "pairing"."votes" (
-  "judge" integer,
+  "judge" text,
   "team" text,
   "division" integer,
   "tournament" integer,

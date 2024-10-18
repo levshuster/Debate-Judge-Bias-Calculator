@@ -248,7 +248,7 @@ debater_urls_to_process
 debaters_progress = st.progress(0, "No Debaters Have Been Found that Require Further Processing")
 for count, debater_url in debater_urls_to_process.itertuples():
 	debater_names, team_name = scrape_debaters_and_judges.get_debater_and_team_from_url(debater_url)
-	if team_name != None and debater_name != []:
+	if team_name != None and debater_names != []:
 		debaters_progress.progress((count+1)/len(debater_urls_to_process), f"Processing {debater_names[0]} from {team_name}")
 		with conn.session as session:
 			for debater_name in debater_names:
@@ -256,7 +256,7 @@ for count, debater_url in debater_urls_to_process.itertuples():
 					debater_table.insert().values(
 						name=debater_name,
 						school=team_name,
-						first_name=debater_name.split()[0],
+						first_name=lower(debater_name.split()[0]),
 						team=debater_url,
 					)
 				)
@@ -278,10 +278,9 @@ judge_urls_to_process = conn.query("SELECT url FROM pairing.judge WHERE to_scrap
 judges_progress = st.progress(0, "No Judges Have Been Found that Require Further Processing")
 warnings = st.expander("See Exceptions", icon='⚠️')
 for count, judges_url in judge_urls_to_process.itertuples():
-	division_progress.progress((count+1)/len(judge_urls_to_process), f"Processing {judges_url}")
+	judges_progress.progress((count+1)/len(judge_urls_to_process), f"Processing {judges_url}")
 	votes, speaker_points = scrape_debaters_and_judges.get_votes_and_speaker_points_for_a_tournament_from_judge_url(warnings, judges_url)
 	with conn.session as session:
-		# stopped here, need to insert all votes and speaker points then set the judge to scraped
 		for vote in votes:
 			session.execute(
 				votes_table.insert().values(
